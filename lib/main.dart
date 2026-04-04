@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/app_routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'App Lideres',
       theme: AppTheme.lightTheme,
-      home: const Scaffold(body: Center(child: Text('Setup inicial completado'))),
+      // Configuración estricta de rutas nativas
+      initialRoute: AppRoutes.login,
+      routes: AppRoutes.routes,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
