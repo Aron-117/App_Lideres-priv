@@ -6,6 +6,7 @@ import '../../features/courses/pendientes_sreen.dart';
 import '../../features/courses/class_detail_screen.dart';
 import '../../features/admin/admin_screen.dart';
 import '../../features/courses/task_detail_screen.dart';
+import '../../features/profile/profile_screen.dart';
 
 class AppRoutes {
   AppRoutes._();
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String classDetail = '/class-detail';
   static const String admin = '/admin';
   static const String taskDetail = '/task-detail';
+  static const String profile = '/profile';
 
   // Mapa de rutas
   static Map<String, WidgetBuilder> get routes => {
@@ -26,5 +28,6 @@ class AppRoutes {
     classDetail: (context) => const ClassDetailScreen(),
     admin: (context) => const AdminScreen(),
     taskDetail: (context) => const TaskDetailScreen(),
+    profile: (context) => const ProfileScreen(),
   };
 }

@@ -29,8 +29,26 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.backgroundLight,
       drawer: const CustomDrawer(), // AGREGAR ESTA LÍNEA
       appBar: AppBar(
-        // ... resto de tu código    appBar: AppBar(
-        // ... (Tu código del AppBar se mantiene igual)
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        // Flutter pondrá automáticamente el ícono de Menú (hamburguesa) a la izquierda
+        // porque detecta que tienes un `drawer: const CustomDrawer()`.
+
+        // Acciones a la derecha (Nuestro botón de Perfil)
+        actions: [
+          IconButton(
+            icon: const CircleAvatar(
+              backgroundColor: AppColors.secondary,
+              radius: 16,
+              child: Icon(Icons.person, color: AppColors.surfaceWhite, size: 20),
+            ),
+            onPressed: () {
+              // Navegar a la pantalla de perfil
+              Navigator.pushNamed(context, AppRoutes.profile);
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
