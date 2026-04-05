@@ -2,28 +2,36 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/task_list_tile.dart';
 import '../../core/utils/user_roles.dart'; // ¡Importante importar tu nuevo modelo!
+import 'package:provider/provider.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/widgets/custom_drawer.dart'; // Para el menú lateral
+import '../../core/utils/app_routes.dart'; // Para navegar al detalle de la materia
 
 class ClassDetailScreen extends StatelessWidget {
-  // El rool del user
-  final UserRole userRole;
-
-  const ClassDetailScreen({
-    super.key,
-    // Por defecto, temporal para debug
-    this.userRole = UserRole.professor,
-  });
+  const ClassDetailScreen({super.key}); // <-- Constructor
 
   @override
   Widget build(BuildContext context) {
+    // Leemos el rol del usuario que inició sesión.
+    // Si por alguna razón es nulo, por seguridad le asignamos rol de estudiante.
+    final currentUserRole = context.read<AuthProvider>().currentUser?.role ?? UserRole.student;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
+      drawer: const CustomDrawer(), // AGREGAR ESTA LÍNEA
       appBar: AppBar(
+        // ... resto de tu código    appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.primaryDark),
-          onPressed: () {
-            Navigator.pop(context);
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu, color: AppColors.primaryDark),
+              onPressed: () {
+                // Esto le dice a Flutter: "Busca el Scaffold más cercano y ábrele el menú"
+                Scaffold.of(context).openDrawer();
+              },
+            );
           },
         ),
       ),
@@ -62,9 +70,8 @@ class ClassDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Usamos la propiedad 'canEditCourses'
-          // para mostrar el botón solo a los roles que pueden editar cursos
-          if (userRole.canEditCourses) ...[
+          // Usamos la propiedad 'canEditCourses' sobre el rol REAL
+          if (currentUserRole.canEditCourses) ...[
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.surfaceWhite,
@@ -83,7 +90,18 @@ class ClassDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
           ],
 
-          const TaskListTile(title: 'Título de tarea', description: 'Descripción breve\nFecha'),
+          // Recuerda el import de rutas arriba
+          // import '../../core/utils/app_routes.dart';
+
+          // ... (resto de tu código)
+          TaskListTile(
+            // Quita el const si lo tenía
+            title: 'Título de tarea',
+            description: 'Descripción breve\nFecha',
+            onTap: () {
+              Navigator.pushNamed(context, AppRoutes.taskDetail);
+            },
+          ),
           const TaskListTile(title: 'Anuncio', description: 'Descripción breve\nFecha'),
         ],
       ),

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/custom_text_field.dart';
+import '../../core/utils/app_routes.dart';
+
+import 'package:provider/provider.dart'; // Para que entienda qué es Consumer
+import '../../core/providers/auth_provider.dart'; // Para que entienda qué es AuthProvider
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -32,31 +36,60 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // Inputs (Usando tu widget reutilizable)
+              // Inputs (Usando widget reutilizable)
               const CustomTextField(label: 'User'),
               const SizedBox(height: 16),
               const CustomTextField(label: 'Password', isPassword: true),
               const SizedBox(height: 24),
 
               // Botón de Login (Maquetado rápido)
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  foregroundColor: AppColors.surfaceWhite,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () {
-                  // Aquí irá la lógica de autenticación después
-                  // Por ahora, simulamos navegación al home
-                  // Navigator.pushReplacementNamed(context, AppRoutes.home);
-                },
-                child: const Text(
-                  'Sign In',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
+              //vercion 2
+              Consumer<AuthProvider>(
+                builder: (context, auth, child) {
+                  if (auth.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Mostramos la alerta roja si hay error
+                      if (auth.errorMessage != null) ...[
+                        Text(
+                          auth.errorMessage!,
+                          style: const TextStyle(color: AppColors.error),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondary,
+                          foregroundColor: AppColors.surfaceWhite,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () async {
+                          // Nota: Aquí deberías capturar el texto real de tus CustomTextFields
+                          // usando un TextEditingController. Por ahora simularemos los valores.
+                          final email = "usuario@correo.com";
+                          final pass = "123456";
+
+                          final success = await auth.signIn(email, pass);
+                          // ¡NO USAMOS NAVIGATOR AQUÍ!
+                          // Si el signIn es exitoso, el AuthWrapper de main.dart
+                          // detectará el cambio y nos moverá al Home automáticamente.
+                        },
+                        child: const Text(
+                          'Sign In',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
               const SizedBox(height: 24),
 
               // Forgot Password
