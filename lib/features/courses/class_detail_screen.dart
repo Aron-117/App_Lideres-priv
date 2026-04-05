@@ -18,20 +18,15 @@ class ClassDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      drawer: const CustomDrawer(), // AGREGAR ESTA LÍNEA
+
       appBar: AppBar(
-        // ... resto de tu código    appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.primaryDark),
-              onPressed: () {
-                // Esto le dice a Flutter: "Busca el Scaffold más cercano y ábrele el menú"
-                Scaffold.of(context).openDrawer();
-              },
-            );
+        // Flecha nativa para ir atrás
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primaryDark),
+          onPressed: () {
+            Navigator.pop(context);
           },
         ),
       ),
