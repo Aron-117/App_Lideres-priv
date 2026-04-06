@@ -4,9 +4,16 @@ import '../theme/app_colors.dart';
 class CourseCard extends StatelessWidget {
   final String title;
   final String description;
+  final String imagePath; // ALTERACIÓN 1: Variable para la ruta de la imagen
   final VoidCallback? onTap;
 
-  const CourseCard({super.key, required this.title, required this.description, this.onTap});
+  const CourseCard({
+    super.key, 
+    required this.title, 
+    required this.description, 
+    required this.imagePath, // ALTERACIÓN 2: Lo pedimos como dato obligatorio
+    this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +31,17 @@ class CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Imagen Provisional
-            const SizedBox(height: 120, child: Placeholder(color: AppColors.accent)),
-            // Textos
+            // ALTERACIÓN 3: Cambiamos Placeholder por Image.asset envuelto en ClipRRect
+            ClipRRect(
+              // Cortamos solo las esquinas superiores para que no tapen el borde de la tarjeta
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.asset(
+                imagePath,
+                height: 120,
+                fit: BoxFit.cover, // Hace que la imagen llene el espacio sin aplastarse
+              ),
+            ),
+            // Textos (TOTALMENTE INTACTOS)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
