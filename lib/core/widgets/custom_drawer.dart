@@ -10,74 +10,122 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Leemos el rol para saber qué botones mostrar
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
     final bool canManageUsers = user?.role.canManageUsers ?? false;
 
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      // ALTERACIÓN 1: Fondo limpio para que resalten los ítems
+      backgroundColor: AppColors.surfaceWhite,
+      child: Column( // Cambiamos ListView por Column + Expanded para el botón de cerrar abajo
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: AppColors.primaryDark),
+          // CABECERA MODERNIZADA
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 50, left: 20, bottom: 20, right: 20),
+            // ALTERACIÓN 2: Degradado para dar profundidad
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.primaryDark, AppColors.primary],
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 const CircleAvatar(
+                  radius: 30,
                   backgroundColor: AppColors.surfaceWhite,
-                  child: Icon(Icons.person, color: AppColors.primaryDark),
+                  child: Icon(Icons.person_rounded, color: AppColors.primaryDark, size: 35),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 15),
                 Text(
                   user?.name ?? 'Usuario',
-                  style: const TextStyle(color: AppColors.surfaceWhite, fontSize: 18),
+                  style: const TextStyle(
+                    color: AppColors.surfaceWhite, 
+                    fontSize: 20, 
+                    fontWeight: FontWeight.bold // Texto con más peso
+                  ),
                 ),
                 Text(
                   user?.email ?? '',
-                  style: const TextStyle(color: AppColors.surfaceWhite, fontSize: 14),
+                  style: TextStyle(
+                    color: AppColors.surfaceWhite.withOpacity(0.8), 
+                    fontSize: 14
+                  ),
                 ),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home, color: AppColors.primaryDark),
-            title: const Text('Inicio'),
-            onTap: () {
-              Navigator.pop(context); // Cierra el menú
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.assignment, color: AppColors.primaryDark),
-            title: const Text('Pendientes'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutes.pendientes);
-            },
-          ),
-          // Solo mostramos Administración si tiene permisos
-          if (canManageUsers)
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings, color: AppColors.primaryDark),
-              title: const Text('Administración'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, AppRoutes.admin);
-              },
+
+          // LISTA DE OPCIONES
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.home_rounded,
+                  label: 'Inicio',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, AppRoutes.home);
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.assignment_rounded,
+                  label: 'Pendientes',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, AppRoutes.pendientes);
+                  },
+                ),
+                if (canManageUsers)
+                  _buildDrawerItem(
+                    icon: Icons.admin_panel_settings_rounded,
+                    label: 'Administración',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRoutes.admin);
+                    },
+                  ),
+              ],
             ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.error),
-            title: const Text('Cerrar Sesión', style: TextStyle(color: AppColors.error)),
-            onTap: () {
-              auth.logout();
-              // El AuthWrapper en main.dart detectará el cambio y lo mandará al login
-            },
           ),
+
+          // SECCIÓN INFERIOR
+          const Divider(indent: 20, endIndent: 20),
+          _buildDrawerItem(
+            icon: Icons.logout_rounded,
+            label: 'Cerrar Sesión',
+            color: AppColors.error,
+            onTap: () => auth.logout(),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  // Widget auxiliar para mantener los ListTile con un estilo moderno y uniforme
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color color = AppColors.primaryDark,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: color, size: 26),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: color, 
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+      ),
+      onTap: onTap,
+      visualDensity: VisualDensity.compact, // Hace que se vea más estilizado
     );
   }
 }
