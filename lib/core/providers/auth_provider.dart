@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-import '../../services/mock_auth_service.dart';
+import '../../services/auth_service.dart'; // <-- Cambiamos al servicio real
 
 class AuthProvider extends ChangeNotifier {
-  final MockAuthService _service = MockAuthService();
+  final AuthService _service = AuthService();
 
   User? _currentUser;
   String? _jwtToken;
@@ -16,31 +16,47 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Método que la UI llamará al presionar "Sign In"
+  // Método que la UI llama al presionar "Sign In"
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Flujo de 2 pasos exigido por la arquitectura
+      // 1. Pide el token al backend y lo guarda
       _jwtToken = await _service.login(email, password);
+
+      // 2. Trae la información del usuario
       _currentUser = await _service.getProfile(_jwtToken!);
 
       _isLoading = false;
       notifyListeners();
       return true; // Éxito
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      // 1. Convertimos el error a texto para analizarlo
+      String errorStr = e.toString();
+
+      // 2. Si es un error de conexión (el servidor está apagado o no hay internet)
+      if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
+        _errorMessage =
+            'No se pudo conectar al servidor. Revisa tu conexión a internet o intenta más tarde.';
+      }
+      // 3. Si es un error controlado de nuestra API (ej: "Usuario no encontrado")
+      else {
+        _errorMessage = errorStr.replaceAll('Exception: ', '');
+      }
+
       _jwtToken = null;
       _currentUser = null;
       _isLoading = false;
       notifyListeners();
-      return false; // Fallo
+      return false;
     }
   }
 
-  void logout() {
+  // Modificamos el logout para que borre el token del celular
+  Future<void> logout() async {
+    await _service.logout();
     _jwtToken = null;
     _currentUser = null;
     notifyListeners();

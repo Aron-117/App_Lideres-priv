@@ -1,3 +1,5 @@
+/* eliminar, ya no sirve
+
 import '../core/models/course_model.dart';
 
 class MockCourseService {
@@ -25,3 +27,4 @@ class MockCourseService {
     ];
   }
 }
+*/
