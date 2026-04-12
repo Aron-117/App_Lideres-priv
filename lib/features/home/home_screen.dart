@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
           end: Alignment.bottomRight,
           colors: [
             AppColors.backgroundLight, // Tu tono azul claro
-            AppColors.surfaceWhite,    // Difuminándose hacia blanco puro
+            AppColors.surfaceWhite, // Difuminándose hacia blanco puro
           ],
         ),
       ),
@@ -67,12 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
               Text(
                 'Buenas noches',
-                style: Theme.of(
-                  context,
-                ).textTheme.displayLarge?.copyWith(
-                  color: AppColors.primaryDark, 
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: AppColors.primaryDark,
                   fontSize: 28,
-                  fontWeight: FontWeight.w900, // ALTERACIÓN 4: Título más "gordito" (Bold) para darle jerarquía
+                  fontWeight: FontWeight
+                      .w900, // ALTERACIÓN 4: Título más "gordito" (Bold) para darle jerarquía
                 ),
               ),
               const SizedBox(height: 24),
@@ -82,7 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Consumer<CourseProvider>(
                   builder: (context, provider, child) {
                     if (provider.isLoading) {
-                      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                      return const Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
+                      );
                     }
 
                     if (provider.errorMessage != null) {
@@ -102,16 +103,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: provider.courses.length,
                       // ALTERACIÓN 5: Añadimos un pequeño espacio (padding) extra al final de la lista
                       // para que la última tarjeta no quede pegada al borde inferior de la pantalla.
-                      padding: const EdgeInsets.only(bottom: 24.0), 
+                      padding: const EdgeInsets.only(bottom: 24.0),
                       itemBuilder: (context, index) {
                         final course = provider.courses[index];
                         return CourseCard(
                           title: course.title,
                           description: course.description,
                           // ALTERACIÓN 6: Agregamos el parámetro imagePath que tu CourseCard ahora exige.
-                          imagePath: 'assets/images/banner3.png', 
+                          imagePath: 'assets/images/banner3.png',
                           onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.classDetail);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.classDetail,
+                              arguments: course.id, // Pasamos el ID real
+                            );
                           },
                         );
                       },
