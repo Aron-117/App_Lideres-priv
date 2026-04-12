@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/models/resource_model.dart';
 import '../../core/providers/task_detail_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../services/task_service.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   const TaskDetailScreen({super.key});
@@ -73,6 +75,52 @@ class TaskDetailScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // --- BOTÓN DE DESCARGA DE MATERIAL ---
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        try {
+                          // Llamamos al servicio directamente para obtener la URL
+                          final url = await TaskService().getDownloadUrl(task.id);
+                          final uri = Uri.parse(url);
+
+                          if (await canLaunchUrl(uri)) {
+                            // Abrimos la URL en una nueva pestaña para descargar
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('No se puede abrir el enlace')),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Error: ${e.toString().replaceAll('Exception: ', '')}',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.download_rounded, color: AppColors.primary),
+                      label: const Text(
+                        'Descargar material adjunto',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 32),
 
                   // --- ZONA DE ADJUNTOS ---

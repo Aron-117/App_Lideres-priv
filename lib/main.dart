@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/app_routes.dart';
 import 'core/providers/course_provider.dart';
-import 'core/providers/auth_provider.dart'; // Nuevo import
-import 'features/auth/login_screen.dart'; // Nuevo import
-import 'features/home/home_screen.dart'; // Nuevo import
+import 'core/providers/auth_provider.dart';
+import 'features/auth/login_screen.dart';
+import 'features/home/home_screen.dart';
 import 'core/providers/pending_tasks_provider.dart';
+import 'core/providers/admin_provider.dart';
 
 void main() {
   runApp(
@@ -16,6 +17,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => CourseProvider()),
         ChangeNotifierProvider(create: (_) => CourseProvider()),
         ChangeNotifierProvider(create: (_) => PendingTasksProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: const MyApp(),
     ),

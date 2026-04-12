@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:file_picker/file_picker.dart'; // <-- Nuevo
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; // <-- Para detectar Chrome
 import '../core/constants/api_constants.dart';
 import '../core/models/pending_task_model.dart';
@@ -61,5 +61,14 @@ class TaskService {
     } else {
       throw Exception('Error al subir archivo. Código: ${response.statusCode}');
     }
+  }
+
+  // 3. Método para obtener la URL de descarga para Web/Navegador
+  Future<String> getDownloadUrl(int archivoId) async {
+    final token = await _storage.read(key: 'jwt_token');
+    if (token == null) throw Exception('No hay sesión activa.');
+
+    // Generamos la URL con el token incrustado para que el navegador tenga permisos
+    return '${ApiConstants.baseUrl}/archivo-entrega/$archivoId?token=$token';
   }
 }

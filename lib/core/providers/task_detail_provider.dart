@@ -17,7 +17,7 @@ class TaskDetailProvider extends ChangeNotifier {
   bool get isSuccess => _isSuccess;
 
   Future<void> pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png'],
       // CRÍTICO PARA WEB: Obliga a Flutter a cargar los bytes a la RAM
