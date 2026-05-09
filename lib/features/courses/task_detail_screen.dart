@@ -5,6 +5,8 @@ import '../../core/models/resource_model.dart';
 import '../../core/providers/task_detail_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/task_service.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/utils/user_roles.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   const TaskDetailScreen({super.key});
@@ -16,6 +18,9 @@ class TaskDetailScreen extends StatelessWidget {
 
     if (task == null)
       return const Scaffold(body: Center(child: Text("Error: Tarea no encontrada")));
+
+    final auth = context.watch<AuthProvider>();
+    final isTeacher = auth.currentUser?.role.canEditCourses ?? false;
 
     return ChangeNotifierProvider(
       create: (_) => TaskDetailProvider(),
@@ -123,124 +128,154 @@ class TaskDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // --- ZONA DE ADJUNTOS ---
-                  const Text(
-                    'Tu trabajo',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Container(
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceWhite,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 1.5),
-                    ),
-                    child: InkWell(
-                      onTap: provider.isSuccess ? null : () => provider.pickFile(),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (provider.selectedFile != null) ...[
-                            const Icon(
-                              Icons.insert_drive_file,
-                              size: 32,
-                              color: AppColors.primaryDark,
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Text(
-                                provider.selectedFile!.name, // Muestra el nombre del archivo
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: provider.isSuccess ? null : () => provider.clearFile(),
-                              child: const Text(
-                                "Quitar archivo",
-                                style: TextStyle(color: AppColors.error),
-                              ),
-                            ),
-                          ] else ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: const BoxDecoration(
-                                color: AppColors.backgroundLight,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.cloud_upload_outlined,
-                                size: 32,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Toca para subir un archivo',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ],
+                  // --- ZONA DE ADJUNTOS (SOLO ALUMNOS) ---
+                  if (!isTeacher) ...[
+                    const Text(
+                      'Tu trabajo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryDark,
+                        fontSize: 18,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                  // --- MENSAJES DE ERROR O ÉXITO ---
-                  if (provider.message != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Text(
-                        provider.message!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: provider.isSuccess ? Colors.green : AppColors.error,
-                          fontWeight: FontWeight.bold,
+                    Container(
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 1.5),
+                      ),
+                      child: InkWell(
+                        onTap: provider.isSuccess ? null : () => provider.pickFile(),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (provider.selectedFile != null) ...[
+                              const Icon(
+                                Icons.insert_drive_file,
+                                size: 32,
+                                color: AppColors.primaryDark,
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Text(
+                                  provider.selectedFile!.name,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: provider.isSuccess ? null : () => provider.clearFile(),
+                                child: const Text(
+                                  "Quitar archivo",
+                                  style: TextStyle(color: AppColors.error),
+                                ),
+                              ),
+                            ] else ...[
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.backgroundLight,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.cloud_upload_outlined,
+                                  size: 32,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Toca para subir un archivo',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
 
-                  // --- BOTÓN DE ENTREGA ---
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: provider.isSuccess ? Colors.green : AppColors.primaryDark,
-                      foregroundColor: AppColors.surfaceWhite,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    // Desactivamos el botón si está cargando o si ya tuvo éxito
-                    onPressed: (provider.isUploading || provider.isSuccess)
-                        ? null
-                        : () =>
-                              provider.submitTask(task.id), // Enviamos el ID de la tarea al backend
-                    child: provider.isUploading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : Text(
-                            provider.isSuccess ? 'Entregado' : 'Entregar Tarea',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    // --- MENSAJES DE ERROR O ÉXITO ---
+                    if (provider.message != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Text(
+                          provider.message!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: provider.isSuccess ? Colors.green : AppColors.error,
+                            fontWeight: FontWeight.bold,
                           ),
-                  ),
-                  const SizedBox(height: 20),
+                        ),
+                      ),
+
+                    // --- BOTÓN DE ENTREGA ---
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: provider.isSuccess ? Colors.green : AppColors.primaryDark,
+                        foregroundColor: AppColors.surfaceWhite,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: (provider.isUploading || provider.isSuccess)
+                          ? null
+                          : () => provider.submitTask(task.id),
+                      child: provider.isUploading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : Text(
+                              provider.isSuccess ? 'Entregado' : 'Entregar Tarea',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    // --- VISTA PROFESOR ---
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.people_alt_outlined, size: 40, color: AppColors.primary),
+                          SizedBox(height: 12),
+                          Text(
+                            'Entregas de alumnos',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'La visualización de entregas estará disponible próximamente.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -5,6 +5,8 @@ import '../../core/widgets/course_card.dart';
 import '../../core/providers/course_provider.dart';
 import '../../core/utils/app_routes.dart';
 import '../../core/widgets/custom_drawer.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/utils/user_roles.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final isTeacher = auth.currentUser?.role.canEditCourses ?? false;
+    final userName = auth.currentUser?.name.split(' ').first ?? 'Usuario';
+
     // ALTERACIÓN 1: Envolvemos el Scaffold en un Container para darle el degradado de fondo
     return Container(
       decoration: const BoxDecoration(
@@ -66,12 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const SizedBox(height: 10),
               Text(
-                'Buenas noches',
+                'Hola, $userName',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
                   color: AppColors.primaryDark,
                   fontSize: 28,
-                  fontWeight: FontWeight
-                      .w900, // ALTERACIÓN 4: Título más "gordito" (Bold) para darle jerarquía
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                isTeacher ? 'Clases que impartes' : 'Tus Clases',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 24),

@@ -91,7 +91,7 @@ class ClassDetailScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          onPressed: () {},
+                          onPressed: () => _showCreateOptions(context, courseId),
                           icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
                           label: const Text(
                             'Nuevo anuncio',
@@ -158,6 +158,66 @@ class ClassDetailScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showCreateOptions(BuildContext context, int courseId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: AppColors.surfaceWhite,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: AppColors.backgroundLight,
+                  child: Icon(Icons.assignment_rounded, color: AppColors.primaryDark),
+                ),
+                title: const Text('Crear Tarea', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Asignar un trabajo con fecha de entrega'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Navegar a pantalla de crear tarea
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Creación de tarea disponible próximamente')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: AppColors.backgroundLight,
+                  child: Icon(Icons.menu_book_rounded, color: AppColors.primary),
+                ),
+                title: const Text('Subir Material', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Compartir documentos, videos o enlaces'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Navegar a pantalla de crear material
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Subida de material disponible próximamente')),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
     );
   }
 }
