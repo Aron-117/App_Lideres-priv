@@ -56,7 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const CircleAvatar(
                 backgroundColor: AppColors.secondary,
                 radius: 16,
-                child: Icon(Icons.person, color: AppColors.surfaceWhite, size: 20),
+                child: Icon(
+                  Icons.person,
+                  color: AppColors.surfaceWhite,
+                  size: 20,
+                ),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.profile);
@@ -96,12 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, provider, child) {
                     if (provider.isLoading) {
                       return const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       );
-                    }
-
-                    if (provider.errorMessage != null) {
-                      return Center(child: Text('Error: ${provider.errorMessage}'));
                     }
 
                     if (provider.courses.isEmpty) {
@@ -110,6 +112,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           'No tienes materias asignadas.',
                           style: TextStyle(color: AppColors.textSecondary),
                         ),
+                      );
+                    }
+                    if (provider.errorMessage != null) {
+                      return Center(
+                        child: Text('Error: ${provider.errorMessage}'),
                       );
                     }
 

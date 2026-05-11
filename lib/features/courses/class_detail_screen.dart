@@ -31,14 +31,20 @@ class ClassDetailScreen extends StatelessWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.primaryDark),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.primaryDark,
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
             body: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 10.0,
+                    ),
                     children: [
                       // --- BANNER DE LA CLASE ---
                       Container(
@@ -49,7 +55,10 @@ class ClassDetailScreen extends StatelessWidget {
                           image: const DecorationImage(
                             image: AssetImage('assets/images/logo.png'),
                             fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
+                            colorFilter: ColorFilter.mode(
+                              Colors.black45,
+                              BlendMode.darken,
+                            ),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -66,11 +75,12 @@ class ClassDetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Detalles de Clase', // Aquí luego podemos pasar el título real
-                              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                fontSize: 26,
-                                color: AppColors.surfaceWhite,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.displayLarge
+                                  ?.copyWith(
+                                    fontSize: 26,
+                                    color: AppColors.surfaceWhite,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -89,13 +99,22 @@ class ClassDetailScreen extends StatelessWidget {
                               width: 1.5,
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          onPressed: () => _showCreateOptions(context, courseId),
-                          icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+                          onPressed: () =>
+                              _showCreateOptions(context, courseId),
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            size: 20,
+                          ),
                           label: const Text(
                             'Nuevo anuncio',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -186,30 +205,50 @@ class ClassDetailScreen extends StatelessWidget {
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.backgroundLight,
-                  child: Icon(Icons.assignment_rounded, color: AppColors.primaryDark),
+                  child: Icon(
+                    Icons.assignment_rounded,
+                    color: AppColors.primaryDark,
+                  ),
                 ),
-                title: const Text('Crear Tarea', style: TextStyle(fontWeight: FontWeight.bold)),
+                title: const Text(
+                  'Crear Tarea',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: const Text('Asignar un trabajo con fecha de entrega'),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: Navegar a pantalla de crear tarea
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Creación de tarea disponible próximamente')),
+                    const SnackBar(
+                      content: Text(
+                        'Creación de tarea disponible próximamente',
+                      ),
+                    ),
                   );
                 },
               ),
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.backgroundLight,
-                  child: Icon(Icons.menu_book_rounded, color: AppColors.primary),
+                  child: Icon(
+                    Icons.menu_book_rounded,
+                    color: AppColors.primary,
+                  ),
                 ),
-                title: const Text('Subir Material', style: TextStyle(fontWeight: FontWeight.bold)),
+                title: const Text(
+                  'Subir Material',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: const Text('Compartir documentos, videos o enlaces'),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: Navegar a pantalla de crear material
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Subida de material disponible próximamente')),
+                    const SnackBar(
+                      content: Text(
+                        'Subida de material disponible próximamente',
+                      ),
+                    ),
                   );
                 },
               ),

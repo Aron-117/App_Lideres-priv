@@ -6,12 +6,20 @@ class User {
   final String email;
   final UserRole role;
 
-  User({required this.id, required this.name, required this.email, required this.role});
+  User({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+  });
 
   factory User.fromJson(Map<String, dynamic> json) {
     // Mapeamos el rol del backend ("Estudiante", "Profesor") a tu Enum
     UserRole parsedRole;
     switch (json['rol']) {
+      case 'Admin':
+        parsedRole = UserRole.superAdmin; // o crea rol admin si quieres
+        break;
       case 'Profesor':
         parsedRole = UserRole.professor;
         break;
@@ -22,7 +30,10 @@ class User {
     }
 
     return User(
-      id: json['id_usuario'] ?? json['sub'] ?? 0, // 'sub' viene en el endpoint de profile
+      id:
+          json['id_usuario'] ??
+          json['sub'] ??
+          0, // 'sub' viene en el endpoint de profile
       name: json['nombre'] ?? 'Usuario',
       email: json['correo'] ?? '',
       role: parsedRole,
