@@ -23,20 +23,34 @@ class AdminService {
   }
 
   // 2. Editar usuario (PATCH /api/usuario/{id})
-  Future<bool> updateUserRole(int id, String newRole) async {
+  Future<bool> updateUser(int id, Map<String, dynamic> updates) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario/$id');
 
     final response = await http.patch(
       url,
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-      body: jsonEncode({'rol': newRole}),
+      body: jsonEncode(updates),
     );
 
     return response.statusCode == 200;
   }
 
-  // 3. Eliminar usuario (DELETE /api/usuario/{id})
+  // 3. Crear usuario (POST /api/usuario)
+  Future<bool> createUser(Map<String, dynamic> userData) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/usuario');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      body: jsonEncode(userData),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  // 4. Eliminar usuario (DELETE /api/usuario/{id})
   Future<bool> deleteUser(int id) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario/$id');

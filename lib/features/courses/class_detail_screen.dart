@@ -7,6 +7,10 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/resource_provider.dart';
 import '../../core/utils/app_routes.dart';
 
+import 'create_task_screen.dart';
+import 'create_material_screen.dart';
+import 'material_detail_screen.dart';
+
 class ClassDetailScreen extends StatelessWidget {
   const ClassDetailScreen({super.key});
 
@@ -167,6 +171,14 @@ class ClassDetailScreen extends StatelessWidget {
                                       AppRoutes.taskDetail,
                                       arguments: res,
                                     );
+                                  } else if (res.type == 'material') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const MaterialDetailScreen(),
+                                        settings: RouteSettings(arguments: res),
+                                      ),
+                                    );
                                   }
                                 },
                               ),
@@ -217,12 +229,10 @@ class ClassDetailScreen extends StatelessWidget {
                 subtitle: const Text('Asignar un trabajo con fecha de entrega'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navegar a pantalla de crear tarea
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Creación de tarea disponible próximamente',
-                      ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CreateTaskScreen(courseId: courseId),
                     ),
                   );
                 },
@@ -242,12 +252,10 @@ class ClassDetailScreen extends StatelessWidget {
                 subtitle: const Text('Compartir documentos, videos o enlaces'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navegar a pantalla de crear material
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Subida de material disponible próximamente',
-                      ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CreateMaterialScreen(courseId: courseId),
                     ),
                   );
                 },

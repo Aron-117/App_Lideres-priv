@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/providers/admin_provider.dart';
 import '../../core/utils/user_roles.dart';
+import 'user_form_dialog.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -23,6 +24,13 @@ class _AdminScreenState extends State<AdminScreen> {
     });
   }
 
+  void _showUserDialog([user]) {
+    showDialog(
+      context: context,
+      builder: (_) => UserFormDialog(userToEdit: user),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,6 +44,12 @@ class _AdminScreenState extends State<AdminScreen> {
             context,
           ).textTheme.displayLarge?.copyWith(fontSize: 28, color: AppColors.primaryDark),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showUserDialog,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add),
+        label: const Text('Nuevo Usuario'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -101,9 +115,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit_square, color: AppColors.primary),
-                              onPressed: () {
-                                // Aquí podrías abrir un modal para cambiar el rol
-                              },
+                              onPressed: () => _showUserDialog(user),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline, color: AppColors.error),
@@ -143,3 +155,4 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 }
+

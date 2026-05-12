@@ -45,4 +45,37 @@ class CourseService {
       throw Exception('Error al cargar recursos del curso');
     }
   }
+
+  // Método 3: Crear tarea
+  Future<bool> createTask(int courseId, Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/tarea');
+    
+    // Aseguramos que el curso esté vinculado
+    data['id_curso'] = courseId;
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      body: jsonEncode(data),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  // Método 4: Crear material
+  Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/material');
+    
+    data['id_curso'] = courseId;
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      body: jsonEncode(data),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
 }

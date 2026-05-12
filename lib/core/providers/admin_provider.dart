@@ -44,11 +44,44 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> createUser(Map<String, dynamic> userData) async {
+    try {
+      final success = await _service.createUser(userData);
+      if (success) {
+        await fetchUsers(); // Refresh the list
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateUser(int id, Map<String, dynamic> updates) async {
+    try {
+      final success = await _service.updateUser(id, updates);
+      if (success) {
+        await fetchUsers(); // Refresh the list
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> removeUser(int id) async {
-    final success = await _service.deleteUser(id);
-    if (success) {
-      _allUsers.removeWhere((u) => u.id == id);
-      _filteredUsers.removeWhere((u) => u.id == id);
+    try {
+      final success = await _service.deleteUser(id);
+      if (success) {
+        _allUsers.removeWhere((u) => u.id == id);
+        _filteredUsers.removeWhere((u) => u.id == id);
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
     }
   }

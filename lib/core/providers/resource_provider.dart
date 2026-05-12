@@ -27,4 +27,32 @@ class ResourceProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> createTask(int courseId, Map<String, dynamic> data) async {
+    try {
+      final success = await _service.createTask(courseId, data);
+      if (success) {
+        await loadResources(courseId);
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
+    try {
+      final success = await _service.createMaterial(courseId, data);
+      if (success) {
+        await loadResources(courseId);
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
 }
