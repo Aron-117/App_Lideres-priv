@@ -1,3 +1,5 @@
+/* eliminar, ya no sirve
+
 import '../core/models/course_model.dart';
 
 class MockCourseService {
@@ -14,12 +16,15 @@ class MockCourseService {
         title: 'Matemáticas Avanzadas',
         description: 'Cálculo diferencial e integral.',
       ),
-      Course(id: 'c2', title: 'Física Moderna', description: 'Termodinámica y mecánica cuántica.'),
+      Course(
+        id: 'c2', title: 'Física Moderna',
+        description: 'Termodinámica y mecánica cuántica.'),
       Course(
         id: 'c3',
-        title: 'Historia Universal',
+        title: 'Quimica Orgánica',
         description: 'Desde la prehistoria hasta la actualidad.',
       ),
     ];
   }
 }
+*/

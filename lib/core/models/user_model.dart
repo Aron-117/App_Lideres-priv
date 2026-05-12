@@ -1,20 +1,42 @@
 import '../utils/user_roles.dart';
 
 class User {
-  final String id;
+  final int id;
   final String name;
   final String email;
   final UserRole role;
 
-  User({required this.id, required this.name, required this.email, required this.role});
+  User({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+  });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // Convertimos el string del JSON al Enum estricto de Dart
-    UserRole parsedRole = UserRole.values.firstWhere(
-      (e) => e.name == json['role'],
-      orElse: () => UserRole.student, // Fallback de seguridad
-    );
+    // Mapeamos el rol del backend ("Estudiante", "Profesor") a tu Enum
+    UserRole parsedRole;
+    switch (json['rol']) {
+      case 'Admin':
+        parsedRole = UserRole.superAdmin; // o crea rol admin si quieres
+        break;
+      case 'Profesor':
+        parsedRole = UserRole.professor;
+        break;
+      case 'Estudiante':
+      default:
+        parsedRole = UserRole.student;
+        break;
+    }
 
-    return User(id: json['id'], name: json['name'], email: json['email'], role: parsedRole);
+    return User(
+      id:
+          json['id_usuario'] ??
+          json['sub'] ??
+          0, // 'sub' viene en el endpoint de profile
+      name: json['nombre'] ?? 'Usuario',
+      email: json['correo'] ?? '',
+      role: parsedRole,
+    );
   }
 }

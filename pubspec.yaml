@@ -36,7 +36,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^8.0.2
   provider: ^6.1.5+1
+<<<<<<< HEAD
   dio: ^5.9.2
+=======
+  http: ^1.6.0
+  flutter_secure_storage: ^10.0.0
+  file_picker: ^11.0.2
+  url_launcher: ^6.3.2
+>>>>>>> 91b22edbd346c7313ccd08073ef6b52da940fbf9
 
 dev_dependencies:
   flutter_test:
@@ -54,11 +61,15 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/logo.png
+    - assets/images/banner3.png
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -90,3 +101,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  
