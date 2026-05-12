@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-import '../../services/mock_auth_service.dart';
-
+import '../../services/auth_service.dart';
 class AuthProvider extends ChangeNotifier {
-  final MockAuthService _service = MockAuthService();
-
+  final AuthService _service = AuthService();
   User? _currentUser;
   String? _jwtToken;
   bool _isLoading = false;
