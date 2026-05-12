@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Título
                   Text(
-                    'Sign In',
+                    'Ingresar',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
                       color: AppColors.surfaceWhite,
                       fontWeight: FontWeight.bold,
@@ -62,10 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 30),
 
                   // Inputs (Usando widget reutilizable)
-                  CustomTextField(label: 'User', controller: emailController),
+                  CustomTextField(label: 'Correo', controller: emailController),
                   const SizedBox(height: 16),
                   CustomTextField(
-                    label: 'Password',
+                    label: 'Contraseña',
                     isPassword: true,
                     controller: passwordController,
                   ),
@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               await auth.signIn(email, pass);
                             },
                             child: const Text(
-                              'Sign In',
+                              'Ingresar',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () {},
                     child: Text(
-                      'Forgot Password?',
+                      '¿Olvidaste tu contraseña?',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.surfaceWhite,
                         decoration: TextDecoration.underline,

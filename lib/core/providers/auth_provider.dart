@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-<<<<<<< HEAD
 import '../../services/auth_service.dart';
-class AuthProvider extends ChangeNotifier {
-  final AuthService _service = AuthService();
-=======
-import '../../services/auth_service.dart'; // <-- Cambiamos al servicio real
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _service = AuthService();
 
->>>>>>> 91b22edbd346c7313ccd08073ef6b52da940fbf9
   User? _currentUser;
   String? _jwtToken;
   bool _isLoading = false;
@@ -43,7 +37,8 @@ class AuthProvider extends ChangeNotifier {
       String errorStr = e.toString();
 
       // 2. Si es un error de conexión (el servidor está apagado o no hay internet)
-      if (errorStr.contains('SocketException') || errorStr.contains('ClientException')) {
+      if (errorStr.contains('SocketException') ||
+          errorStr.contains('ClientException')) {
         _errorMessage =
             'No se pudo conectar al servidor. Revisa tu conexión a internet o intenta más tarde.';
       }
