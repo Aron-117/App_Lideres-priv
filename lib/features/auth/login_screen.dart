@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/custom_text_field.dart';
-// import '../../core/utils/app_routes.dart'; // Comentado por ahora si no se usa
 import 'package:provider/provider.dart';
 import '../../core/providers/auth_provider.dart';
 
@@ -14,6 +12,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  bool _isPasswordHidden = true;
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: SafeArea(
           child: Center(
-            // ALTERACIÓN 3: Envolvemos el Scroll en un Center para centrar el contenido verticalmente
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,
                 vertical: 40.0,
               ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center, // Ayuda a centrar
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 10),
@@ -44,8 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Center(
                     child: Image(
                       image: AssetImage('assets/images/logo.png'),
-                      height:
-                          200, // <-- Ajusta este número si lo quieres más grande o pequeño
+                      height: 200,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -61,21 +59,80 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Inputs (Usando widget reutilizable)
-                  CustomTextField(label: 'Correo', controller: emailController),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    label: 'Contraseña',
-                    isPassword: true,
-                    controller: passwordController,
+                  // --- CAMPO DE USUARIO (Corregido) ---
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Correo',
+                      labelStyle: TextStyle(color: Colors.grey),
+                      border: UnderlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                        borderSide: BorderSide.none,
+                      ),
+                      // DETALLE 1: Reducimos el padding vertical a 12 para que sea más fina
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
                   ),
+
+                  const SizedBox(height: 16),
+
+                  // --- CAMPO DE CONTRASEÑA (Corregido) ---
+                  TextField(
+                    controller: passwordController,
+                    obscureText: _isPasswordHidden,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Contraseña',
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      border: const UnderlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                        borderSide: BorderSide.none,
+                      ),
+                      // DETALLE 1: Misma reducción de padding vertical
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+
+                      // DETALLE 2: Añadimos Padding al IconButton para separarlo del borde
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(
+                          right: 8.0,
+                        ), // Espacio extra a la derecha
+                        child: IconButton(
+                          icon: Icon(
+                            _isPasswordHidden
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordHidden = !_isPasswordHidden;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 24),
 
                   // Botón de Login y lógica (INTACTO)
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       if (auth.isLoading) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.surfaceWhite,
+                          ),
+                        );
                       }
 
                       return Column(
@@ -123,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () {},
                     child: Text(
-                      '¿Olvidaste tu contraseña?',
+                      '¿Olvidaste la contraseña?',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.surfaceWhite,
                         decoration: TextDecoration.underline,
