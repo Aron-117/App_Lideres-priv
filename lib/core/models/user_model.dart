@@ -21,11 +21,11 @@ class User {
         parsedRole = UserRole.superAdmin; // o crea rol admin si quieres
         break;
       case 'Profesor':
-        parsedRole = UserRole.professor;
+        parsedRole = UserRole.profesor;
         break;
       case 'Estudiante':
       default:
-        parsedRole = UserRole.student;
+        parsedRole = UserRole.estudiante;
         break;
     }
 

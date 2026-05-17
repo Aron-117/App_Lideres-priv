@@ -159,8 +159,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () async {
                               final email = emailController.text.trim();
                               final pass = passwordController.text;
-
-                              await auth.signIn(email, pass);
+                              final success = await auth.signIn(email, pass);
+                              if (success && context.mounted) {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/home',
+                                );
+                              }
                             },
                             child: const Text(
                               'Ingresar',

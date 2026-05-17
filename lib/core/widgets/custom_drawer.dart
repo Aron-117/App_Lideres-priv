@@ -17,12 +17,18 @@ class CustomDrawer extends StatelessWidget {
     return Drawer(
       // ALTERACIÓN 1: Fondo limpio para que resalten los ítems
       backgroundColor: AppColors.surfaceWhite,
-      child: Column( // Cambiamos ListView por Column + Expanded para el botón de cerrar abajo
+      child: Column(
+        // Cambiamos ListView por Column + Expanded para el botón de cerrar abajo
         children: [
           // CABECERA MODERNIZADA
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(top: 50, left: 20, bottom: 20, right: 20),
+            padding: const EdgeInsets.only(
+              top: 50,
+              left: 20,
+              bottom: 20,
+              right: 20,
+            ),
             // ALTERACIÓN 2: Degradado para dar profundidad
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -37,22 +43,26 @@ class CustomDrawer extends StatelessWidget {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: AppColors.surfaceWhite,
-                  child: Icon(Icons.person_rounded, color: AppColors.primaryDark, size: 35),
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: AppColors.primaryDark,
+                    size: 35,
+                  ),
                 ),
                 const SizedBox(height: 15),
                 Text(
                   user?.name ?? 'Usuario',
                   style: const TextStyle(
-                    color: AppColors.surfaceWhite, 
-                    fontSize: 20, 
-                    fontWeight: FontWeight.bold // Texto con más peso
+                    color: AppColors.surfaceWhite,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold, // Texto con más peso
                   ),
                 ),
                 Text(
                   user?.email ?? '',
                   style: TextStyle(
-                    color: AppColors.surfaceWhite.withOpacity(0.8), 
-                    fontSize: 14
+                    color: AppColors.surfaceWhite.withOpacity(0.8),
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -99,7 +109,15 @@ class CustomDrawer extends StatelessWidget {
             icon: Icons.logout_rounded,
             label: 'Cerrar Sesión',
             color: AppColors.error,
-            onTap: () => auth.logout(),
+            onTap: () async {
+              await auth.logout();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
+            },
           ),
           const SizedBox(height: 20),
         ],
@@ -119,7 +137,7 @@ class CustomDrawer extends StatelessWidget {
       title: Text(
         label,
         style: TextStyle(
-          color: color, 
+          color: color,
           fontWeight: FontWeight.w600,
           fontSize: 15,
         ),

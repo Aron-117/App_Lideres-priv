@@ -16,21 +16,25 @@ class UserFormDialog extends StatefulWidget {
 
 class _UserFormDialogState extends State<UserFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  
+
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late UserRole _selectedRole;
-  
-  bool _isLoading = false;
 
+  bool _isLoading = false;
+  bool _isOculto = true;
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.userToEdit?.name ?? '');
-    _emailController = TextEditingController(text: widget.userToEdit?.email ?? '');
+    _nameController = TextEditingController(
+      text: widget.userToEdit?.name ?? '',
+    );
+    _emailController = TextEditingController(
+      text: widget.userToEdit?.email ?? '',
+    );
     _passwordController = TextEditingController();
-    _selectedRole = widget.userToEdit?.role ?? UserRole.student;
+    _selectedRole = widget.userToEdit?.role ?? UserRole.estudiante;
   }
 
   @override
@@ -48,11 +52,11 @@ class _UserFormDialogState extends State<UserFormDialog> {
 
     final provider = context.read<AdminProvider>();
     final isEditing = widget.userToEdit != null;
-    
+
     // El backend espera el rol en texto ("Admin", "Profesor", "Estudiante")
     String roleString = 'Estudiante';
     if (_selectedRole == UserRole.superAdmin) roleString = 'Admin';
-    if (_selectedRole == UserRole.professor) roleString = 'Profesor';
+    if (_selectedRole == UserRole.profesor) roleString = 'Profesor';
 
     bool success = false;
 
@@ -83,7 +87,9 @@ class _UserFormDialogState extends State<UserFormDialog> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isEditing ? 'Usuario actualizado' : 'Usuario creado exitosamente'),
+          content: Text(
+            isEditing ? 'Usuario actualizado' : 'Usuario creado exitosamente',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -100,7 +106,6 @@ class _UserFormDialogState extends State<UserFormDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.userToEdit != null;
-
     return AlertDialog(
       title: Text(isEditing ? 'Editar Usuario' : 'Nuevo Usuario'),
       content: SingleChildScrollView(
@@ -112,25 +117,43 @@ class _UserFormDialogState extends State<UserFormDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (val) => val == null || val.isEmpty ? 'Requerido' : null,
+                validator: (val) =>
+                    val == null || val.isEmpty ? 'Requerido' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                ),
                 keyboardType: TextInputType.emailAddress,
-                validator: (val) => val == null || !val.contains('@') ? 'Correo inválido' : null,
+                validator: (val) => val == null || !val.contains('@')
+                    ? 'Correo inválido'
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _passwordController,
+                obscureText: _isOculto,
                 decoration: InputDecoration(
                   labelText: isEditing ? 'Contraseña (opcional)' : 'Contraseña',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isOculto ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isOculto = !_isOculto;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
                 validator: (val) {
                   if (!isEditing && (val == null || val.isEmpty)) {
                     return 'Requerido para nuevos usuarios';
+                  }
+                  if (val != null && val.isNotEmpty && val.length < 8) {
+                    return 'Mínimo 8 caracteres';
                   }
                   return null;
                 },
@@ -140,9 +163,18 @@ class _UserFormDialogState extends State<UserFormDialog> {
                 value: _selectedRole,
                 decoration: const InputDecoration(labelText: 'Rol'),
                 items: const [
-                  DropdownMenuItem(value: UserRole.student, child: Text('Estudiante')),
-                  DropdownMenuItem(value: UserRole.professor, child: Text('Profesor')),
-                  DropdownMenuItem(value: UserRole.superAdmin, child: Text('Administrador')),
+                  DropdownMenuItem(
+                    value: UserRole.estudiante,
+                    child: Text('Estudiante'),
+                  ),
+                  DropdownMenuItem(
+                    value: UserRole.profesor,
+                    child: Text('Profesor'),
+                  ),
+                  DropdownMenuItem(
+                    value: UserRole.superAdmin,
+                    child: Text('Administrador'),
+                  ),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedRole = val);
@@ -161,8 +193,12 @@ class _UserFormDialogState extends State<UserFormDialog> {
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
           child: _isLoading
-              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Guardar'),
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Guardar', style: TextStyle(color: Colors.white)),
         ),
       ],
     );

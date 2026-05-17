@@ -14,7 +14,6 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -40,9 +39,10 @@ class _AdminScreenState extends State<AdminScreen> {
         elevation: 0,
         title: Text(
           'Administración',
-          style: Theme.of(
-            context,
-          ).textTheme.displayLarge?.copyWith(fontSize: 28, color: AppColors.primaryDark),
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+            fontSize: 28,
+            color: AppColors.primaryDark,
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -58,7 +58,9 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Text(
               'Gestión de Usuarios',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
@@ -94,7 +96,9 @@ class _AdminScreenState extends State<AdminScreen> {
                   }
 
                   if (provider.users.isEmpty) {
-                    return const Center(child: Text('No se encontraron usuarios.'));
+                    return const Center(
+                      child: Text('No se encontraron usuarios.'),
+                    );
                   }
 
                   return ListView.separated(
@@ -108,18 +112,28 @@ class _AdminScreenState extends State<AdminScreen> {
                           backgroundColor: AppColors.secondary.withOpacity(0.2),
                           child: Text(user.name[0].toUpperCase()),
                         ),
-                        title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          user.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text('${user.email} • ${user.role.name}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit_square, color: AppColors.primary),
+                              icon: const Icon(
+                                Icons.edit_square,
+                                color: AppColors.primary,
+                              ),
                               onPressed: () => _showUserDialog(user),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                              onPressed: () => _showDeleteDialog(context, provider, user),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.error,
+                              ),
+                              onPressed: () =>
+                                  _showDeleteDialog(context, provider, user),
                             ),
                           ],
                         ),
@@ -142,17 +156,22 @@ class _AdminScreenState extends State<AdminScreen> {
         title: const Text('Eliminar Usuario'),
         content: Text('¿Estás seguro de que quieres eliminar a ${user.name}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
           TextButton(
             onPressed: () {
               provider.removeUser(user.id);
               Navigator.pop(context);
             },
-            child: const Text('Eliminar', style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
     );
   }
 }
-

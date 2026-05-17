@@ -12,7 +12,10 @@ class AdminService {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario');
 
-    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -26,13 +29,14 @@ class AdminService {
   Future<bool> updateUser(int id, Map<String, dynamic> updates) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario/$id');
-
     final response = await http.patch(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(updates),
     );
-
     return response.statusCode == 200;
   }
 
@@ -40,10 +44,12 @@ class AdminService {
   Future<bool> createUser(Map<String, dynamic> userData) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario');
-
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(userData),
     );
 
@@ -55,7 +61,10 @@ class AdminService {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/usuario/$id');
 
-    final response = await http.delete(url, headers: {'Authorization': 'Bearer $token'});
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
 
     return response.statusCode == 200 || response.statusCode == 204;
   }

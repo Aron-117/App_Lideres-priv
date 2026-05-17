@@ -22,7 +22,7 @@ class ClassDetailScreen extends StatelessWidget {
 
     // 2. Leemos el usuario actual para saber si es Profesor o Alumno
     final auth = context.watch<AuthProvider>();
-    final currentUserRole = auth.currentUser?.role ?? UserRole.student;
+    final currentUserRole = auth.currentUser?.role ?? UserRole.estudiante;
 
     // 3. Envolvemos la pantalla para que haga la petición al backend al abrirse
     return ChangeNotifierProvider(
@@ -175,7 +175,8 @@ class ClassDetailScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const MaterialDetailScreen(),
+                                        builder: (_) =>
+                                            const MaterialDetailScreen(),
                                         settings: RouteSettings(arguments: res),
                                       ),
                                     );
