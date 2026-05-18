@@ -1,12 +1,14 @@
+import 'package:app_lideres/core/models/resource_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/providers/resource_provider.dart';
 
 class CreateMaterialScreen extends StatefulWidget {
-  final int courseId;
+  final Resource? material;
 
-  const CreateMaterialScreen({super.key, required this.courseId});
+  const CreateMaterialScreen({super.key, this.material});
 
   @override
   State<CreateMaterialScreen> createState() => _CreateMaterialScreenState();
@@ -14,14 +16,32 @@ class CreateMaterialScreen extends StatefulWidget {
 
 class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descController = TextEditingController(); // Opcional, pero util para expandirlo en el futuro
+
+  late final TextEditingController _titleController;
+  late final TextEditingController _descController;
+
   bool _isLoading = false;
+
+  bool get isEditing => widget.material != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _titleController = TextEditingController(
+      text: widget.material?.title ?? '',
+    );
+
+    _descController = TextEditingController(
+      text: widget.material?.description ?? '',
+    );
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+
     super.dispose();
   }
 
@@ -30,26 +50,62 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
 
     setState(() => _isLoading = true);
 
-    final data = {
+    final Map<String, dynamic> data = {
       'titulo': _titleController.text.trim(),
       'descripcion': _descController.text.trim(),
-      'fecha_subida': DateTime.now().toIso8601String(),
     };
 
     final provider = context.read<ResourceProvider>();
-    final success = await provider.createMaterial(widget.courseId, data);
 
-    setState(() => _isLoading = false);
+    bool success = false;
 
-    if (success && mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Material subido exitosamente'), backgroundColor: Colors.green),
-      );
-    } else if (mounted) {
+    try {
+      if (isEditing) {
+        // EDITAR
+        success = await provider.updateMaterial(widget.material!.id, data);
+      } else {
+        // CREAR
+        data['fecha_subida'] = DateTime.now().toIso8601String();
+
+        success = await provider.createMaterial(data);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+
+    if (!mounted) return;
+
+    if (success) {
+      Resource? updatedMaterial;
+
+      if (isEditing) {
+        updatedMaterial = widget.material!.copyWith(
+          title: data['titulo'],
+          description: data['descripcion'],
+        );
+      }
+
+      Navigator.pop(context, updatedMaterial);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.errorMessage ?? 'Error al subir material'),
+          content: Text(
+            isEditing ? 'Material actualizado' : 'Material subido exitosamente',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ??
+                (isEditing
+                    ? 'Error al actualizar material'
+                    : 'Error al subir material'),
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -60,75 +116,150 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.primaryDark),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.primaryDark,
+          ),
+
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Subir Material', style: TextStyle(color: AppColors.primaryDark)),
+
+        title: Text(
+          isEditing ? 'Editar Material' : 'Subir Material',
+
+          style: const TextStyle(color: AppColors.primaryDark),
+        ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
+
         child: Form(
           key: _formKey,
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+
             children: [
               TextFormField(
                 controller: _titleController,
+
                 decoration: InputDecoration(
                   labelText: 'Título del material',
+
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+
+                    borderSide: BorderSide.none,
+                  ),
                 ),
-                validator: (val) => val == null || val.isEmpty ? 'Requerido' : null,
+
+                validator: (val) =>
+                    val == null || val.isEmpty ? 'Requerido' : null,
               ),
+
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: _descController,
                 maxLines: 4,
+
                 decoration: InputDecoration(
-                  labelText: 'Descripción (Opcional)',
+                  labelText: 'Descripción',
+
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
+
               const SizedBox(height: 16),
+
               Container(
                 padding: const EdgeInsets.all(20),
+
                 decoration: BoxDecoration(
                   color: AppColors.surfaceWhite,
+
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 1.5, style: BorderStyle.solid),
+
+                  border: Border.all(
+                    color: AppColors.secondary.withOpacity(0.3),
+
+                    width: 1.5,
+                  ),
                 ),
-                child: const Column(
+
+                child: Column(
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.primary, size: 32),
-                    SizedBox(height: 8),
+                    Icon(
+                      isEditing ? Icons.edit_rounded : Icons.info_outline,
+
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
+
+                    const SizedBox(height: 8),
+
                     Text(
-                      'La subida de archivos adjuntos se habilitará próximamente. Por ahora solo se guardará la información del material.',
+                      isEditing
+                          ? 'Estás modificando un material existente.'
+                          : 'La subida de archivos adjuntos se habilitará próximamente.',
+
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary),
+
+                      style: const TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
+
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryDark,
+
                   foregroundColor: AppColors.surfaceWhite,
+
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
+
                 onPressed: _isLoading ? null : _submit,
+
                 child: _isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Publicar Material', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        isEditing ? 'Guardar Cambios' : 'Publicar Material',
+
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           ),

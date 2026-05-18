@@ -1,5 +1,8 @@
+import 'package:app_lideres/core/models/resource_model.dart';
+import 'package:app_lideres/features/courses/task_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/task_list_tile.dart';
 import '../../core/utils/user_roles.dart';
@@ -11,22 +14,48 @@ import 'create_task_screen.dart';
 import 'create_material_screen.dart';
 import 'material_detail_screen.dart';
 
-class ClassDetailScreen extends StatelessWidget {
+class ClassDetailScreen extends StatefulWidget {
   const ClassDetailScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // 1. Recibimos el ID del curso que nos mandó la pantalla de Home
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final int courseId = args is int ? args : 0; // 0 como respaldo de seguridad
+  State<ClassDetailScreen> createState() => _ClassDetailScreenState();
+}
 
-    // 2. Leemos el usuario actual para saber si es Profesor o Alumno
+class _ClassDetailScreenState extends State<ClassDetailScreen> {
+  late final ResourceProvider _provider;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = ResourceProvider();
+  }
+
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final int courseId = args is int ? args : 0;
+
+    // Cargamos solo UNA vez
+    if (!_loaded) {
+      _loaded = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _provider.loadCourse(courseId);
+      });
+    }
+
     final auth = context.watch<AuthProvider>();
     final currentUserRole = auth.currentUser?.role ?? UserRole.estudiante;
 
-    // 3. Envolvemos la pantalla para que haga la petición al backend al abrirse
-    return ChangeNotifierProvider(
-      create: (_) => ResourceProvider()..loadResources(courseId),
+    return ChangeNotifierProvider.value(
+      value: _provider,
       child: Consumer<ResourceProvider>(
         builder: (context, provider, child) {
           return Scaffold(
@@ -46,11 +75,10 @@ class ClassDetailScreen extends StatelessWidget {
                 ? const Center(child: CircularProgressIndicator())
                 : ListView(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 10.0,
+                      horizontal: 20,
+                      vertical: 10,
                     ),
                     children: [
-                      // --- BANNER DE LA CLASE ---
                       Container(
                         height: 160,
                         decoration: BoxDecoration(
@@ -72,13 +100,13 @@ class ClassDetailScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
-                              'Detalles de Clase', // Aquí luego podemos pasar el título real
+                              'Detalles de Clase',
                               style: Theme.of(context).textTheme.displayLarge
                                   ?.copyWith(
                                     fontSize: 26,
@@ -89,9 +117,9 @@ class ClassDetailScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 24),
 
-                      // --- BOTÓN DE EDICIÓN (Solo profesores/admins) ---
                       if (currentUserRole.canEditCourses) ...[
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
@@ -108,7 +136,7 @@ class ClassDetailScreen extends StatelessWidget {
                             ),
                           ),
                           onPressed: () =>
-                              _showCreateOptions(context, courseId),
+                              _showCreateOptions(context, courseId, provider),
                           icon: const Icon(
                             Icons.add_circle_outline_rounded,
                             size: 20,
@@ -124,7 +152,6 @@ class ClassDetailScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                       ],
 
-                      // --- LISTA DE RECURSOS REALES ---
                       const Text(
                         'Trabajo de clase',
                         style: TextStyle(
@@ -133,6 +160,7 @@ class ClassDetailScreen extends StatelessWidget {
                           color: AppColors.primaryDark,
                         ),
                       ),
+
                       const SizedBox(height: 12),
 
                       if (provider.errorMessage != null)
@@ -145,7 +173,7 @@ class ClassDetailScreen extends StatelessWidget {
                       else if (provider.resources.isEmpty)
                         const Center(
                           child: Padding(
-                            padding: EdgeInsets.all(20.0),
+                            padding: EdgeInsets.all(20),
                             child: Text(
                               'El profesor aún no ha subido tareas ni materiales.',
                               style: TextStyle(color: AppColors.textSecondary),
@@ -153,26 +181,31 @@ class ClassDetailScreen extends StatelessWidget {
                           ),
                         )
                       else
-                        // Generamos la lista de tareas y materiales usando los datos del servidor
-                        ...provider.resources
-                            .map(
-                              (res) => TaskListTile(
-                                title: res.title,
-                                description:
-                                    res.description ??
-                                    (res.type == 'tarea'
-                                        ? 'Tarea asignada'
-                                        : 'Material de estudio'),
-                                onTap: () {
-                                  if (res.type == 'tarea') {
-                                    // Pasamos el objeto de la tarea completa a la siguiente pantalla
-                                    Navigator.pushNamed(
+                        ...provider.resources.map(
+                          (res) => TaskListTile(
+                            title: res.title,
+                            tipo: res.type,
+                            description:
+                                res.description ??
+                                (res.type == 'tarea'
+                                    ? 'Tarea asignada'
+                                    : 'Material de estudio'),
+                            onTap: () async {
+                              Resource? updatedResource;
+
+                              if (res.type == 'tarea') {
+                                updatedResource =
+                                    await Navigator.push<Resource>(
                                       context,
-                                      AppRoutes.taskDetail,
-                                      arguments: res,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const TaskDetailScreen(),
+                                        settings: RouteSettings(arguments: res),
+                                      ),
                                     );
-                                  } else if (res.type == 'material') {
-                                    Navigator.push(
+                              } else if (res.type == 'material') {
+                                updatedResource =
+                                    await Navigator.push<Resource>(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
@@ -180,11 +213,14 @@ class ClassDetailScreen extends StatelessWidget {
                                         settings: RouteSettings(arguments: res),
                                       ),
                                     );
-                                  }
-                                },
-                              ),
-                            )
-                            .toList(),
+                              }
+
+                              if (updatedResource != null && context.mounted) {
+                                await provider.loadCourse(courseId);
+                              }
+                            },
+                          ),
+                        ),
                     ],
                   ),
           );
@@ -193,7 +229,11 @@ class ClassDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showCreateOptions(BuildContext context, int courseId) {
+  void _showCreateOptions(
+    BuildContext context,
+    int courseId,
+    ResourceProvider provider,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -202,7 +242,7 @@ class ClassDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.surfaceWhite,
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -214,7 +254,9 @@ class ClassDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
+
               const SizedBox(height: 20),
+
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.backgroundLight,
@@ -230,14 +272,19 @@ class ClassDetailScreen extends StatelessWidget {
                 subtitle: const Text('Asignar un trabajo con fecha de entrega'),
                 onTap: () {
                   Navigator.pop(context);
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CreateTaskScreen(courseId: courseId),
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: provider,
+                        child: CreateTaskScreen(courseId: courseId),
+                      ),
                     ),
                   );
                 },
               ),
+
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.backgroundLight,
@@ -253,14 +300,19 @@ class ClassDetailScreen extends StatelessWidget {
                 subtitle: const Text('Compartir documentos, videos o enlaces'),
                 onTap: () {
                   Navigator.pop(context);
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CreateMaterialScreen(courseId: courseId),
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: provider,
+                        child: CreateMaterialScreen(),
+                      ),
                     ),
                   );
                 },
               ),
+
               const SizedBox(height: 10),
             ],
           ),

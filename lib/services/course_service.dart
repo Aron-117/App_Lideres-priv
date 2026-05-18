@@ -16,9 +16,11 @@ class CourseService {
     final url = Uri.parse('${ApiConstants.baseUrl}/curso/my');
     final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
-
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       return body.map((dynamic item) => Course.fromJson(item)).toList();
@@ -34,7 +36,10 @@ class CourseService {
 
     final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -50,13 +55,14 @@ class CourseService {
   Future<bool> createTask(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/tarea');
-    
     // Aseguramos que el curso esté vinculado
     data['id_curso'] = courseId;
-
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(data),
     );
 
@@ -67,15 +73,54 @@ class CourseService {
   Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/material');
-    
+
     data['id_curso'] = courseId;
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(data),
     );
 
     return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  // Método 5: Actualizar tarea
+  Future<bool> updateTask(int taskId, Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/tarea/$taskId');
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+    print(response.statusCode);
+    return response.statusCode == 200;
+  }
+
+  // Método 6: Actualizar material
+  Future<bool> updateMaterial(int materialId, Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/material/$materialId');
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+    print(response.body);
+    return response.statusCode == 200;
   }
 }

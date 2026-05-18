@@ -1,3 +1,4 @@
+import 'package:app_lideres/core/providers/resource_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
@@ -13,9 +14,11 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()), // Registramos Auth
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ), // Registramos Auth
         ChangeNotifierProvider(create: (_) => CourseProvider()),
-        ChangeNotifierProvider(create: (_) => CourseProvider()),
+        ChangeNotifierProvider(create: (_) => ResourceProvider()),
         ChangeNotifierProvider(create: (_) => PendingTasksProvider()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],

@@ -47,14 +47,22 @@ class PendientesScreen extends StatelessWidget {
                     ),
                   )
                 : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     children: [
                       _buildExpansionSection(
                         context,
                         title: 'Sin fecha limite',
                         count: provider.sinFecha.length,
                         tasks: provider.sinFecha
-                            .map((t) => TaskListTile(title: t.title, description: t.courseName))
+                            .map(
+                              (t) => TaskListTile(
+                                title: t.title,
+                                description: t.courseName,
+                              ),
+                            )
                             .toList(),
                       ),
                       const SizedBox(height: 12),
@@ -63,7 +71,12 @@ class PendientesScreen extends StatelessWidget {
                         title: 'Próximas',
                         count: provider.estaSemana.length,
                         tasks: provider.estaSemana
-                            .map((t) => TaskListTile(title: t.title, description: t.courseName))
+                            .map(
+                              (t) => TaskListTile(
+                                title: t.title,
+                                description: t.courseName,
+                              ),
+                            )
                             .toList(),
                       ),
                       const SizedBox(height: 12),
@@ -72,7 +85,12 @@ class PendientesScreen extends StatelessWidget {
                         title: 'Anteriores (Vencidas)',
                         count: provider.anteriores.length,
                         tasks: provider.anteriores
-                            .map((t) => TaskListTile(title: t.title, description: t.courseName))
+                            .map(
+                              (t) => TaskListTile(
+                                title: t.title,
+                                description: t.courseName,
+                              ),
+                            )
                             .toList(),
                       ),
                     ],

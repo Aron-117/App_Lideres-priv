@@ -5,12 +5,13 @@ class TaskListTile extends StatelessWidget {
   final String title;
   final String description;
   final VoidCallback? onTap;
-
+  final String tipo;
   const TaskListTile({
-    super.key, 
-    required this.title, 
-    required this.description, 
-    this.onTap
+    super.key,
+    required this.title,
+    required this.description,
+    this.tipo = 'tarea',
+    this.onTap,
   });
 
   @override
@@ -31,7 +32,8 @@ class TaskListTile extends StatelessWidget {
           ),
         ],
       ),
-      child: IntrinsicHeight( // Para que la línea lateral mida lo mismo que el contenido
+      child: IntrinsicHeight(
+        // Para que la línea lateral mida lo mismo que el contenido
         child: Row(
           children: [
             // ALTERACIÓN 3: Línea de color lateral (Identidad visual de SOCIEQAAP)
@@ -54,22 +56,24 @@ class TaskListTile extends StatelessWidget {
                     color: AppColors.backgroundLight.withOpacity(0.5),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.assignment_outlined, 
-                    color: AppColors.primaryDark, 
-                    size: 20
+                  child: Icon(
+                    tipo == "tarea"
+                        ? Icons.assignment_outlined
+                        : Icons.book_rounded,
+                    color: AppColors.primaryDark,
+                    size: 20,
                   ),
                 ),
                 title: Text(
-                  title, 
+                  title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryDark,
-                  )
+                  ),
                 ),
                 subtitle: Text(
-                  description, 
+                  description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -78,9 +82,9 @@ class TaskListTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: const Icon(
-                  Icons.arrow_forward_ios_rounded, 
-                  color: AppColors.backgroundLight, 
-                  size: 14
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppColors.backgroundLight,
+                  size: 14,
                 ),
                 onTap: onTap,
               ),

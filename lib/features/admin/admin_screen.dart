@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/providers/admin_provider.dart';
-import '../../core/utils/user_roles.dart';
 import 'user_form_dialog.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -48,8 +47,11 @@ class _AdminScreenState extends State<AdminScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showUserDialog,
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo Usuario'),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Nuevo Usuario',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
