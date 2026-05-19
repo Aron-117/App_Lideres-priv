@@ -43,7 +43,6 @@ class ResourceFileService {
     final tipo = (apiPath == "archivo-material") ? "id_material" : "id_tarea";
     var request = http.MultipartRequest('POST', url);
     request.headers.addAll({'Authorization': 'Bearer $token'});
-
     // Asumiendo que tu backend espera 'id_recurso' (ajusta si espera id_material o id_tarea)
     request.fields[tipo] = resourceId.toString();
 
@@ -64,7 +63,6 @@ class ResourceFileService {
 
     request.files.add(multipartFile);
     var streamedResponse = await request.send();
-
     if (streamedResponse.statusCode == 200 ||
         streamedResponse.statusCode == 201) {
       return true;

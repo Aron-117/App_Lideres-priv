@@ -46,7 +46,6 @@ class ResourceFilesProvider extends ChangeNotifier {
 
       try {
         await _service.uploadFile(resourceId, result.files.single, apiPath);
-        // Si sube con éxito, recargamos la lista
         await fetchFiles(resourceId, apiPath);
       } catch (e) {
         _error = e.toString().replaceAll('Exception: ', '');

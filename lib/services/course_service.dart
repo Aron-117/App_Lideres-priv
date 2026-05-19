@@ -102,7 +102,6 @@ class CourseService {
       },
       body: jsonEncode(data),
     );
-    print(response.statusCode);
     return response.statusCode == 200;
   }
 
@@ -120,7 +119,6 @@ class CourseService {
       },
       body: jsonEncode(data),
     );
-    print(response.body);
     return response.statusCode == 200;
   }
 }

@@ -118,7 +118,6 @@ class TaskDetailProvider extends ChangeNotifier {
     _isUploading = true;
     _message = null;
     notifyListeners();
-    print(fileId);
     try {
       // 1. Llamar al backend para eliminar el archivo físico y su registro en BD
       // Nota: Asegúrate de implementar 'deleteSubmissionFile' en tu TaskService
@@ -130,6 +129,23 @@ class TaskDetailProvider extends ChangeNotifier {
       await loadSubmissionStatus(tareaId);
     } catch (e) {
       _message = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteCurrentTask(int tareaId) async {
+    _isUploading = true;
+    _message = null;
+    notifyListeners();
+
+    try {
+      await _service.deleteTask(tareaId);
+      return true; // Retornamos true si se borró con éxito
+    } catch (e) {
+      _message = e.toString().replaceAll('Exception: ', '');
+      return false;
     } finally {
       _isUploading = false;
       notifyListeners();

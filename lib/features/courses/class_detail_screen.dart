@@ -1,4 +1,3 @@
-import 'package:app_lideres/core/models/resource_model.dart';
 import 'package:app_lideres/features/courses/task_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -190,31 +189,28 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                                     ? 'Tarea asignada'
                                     : 'Material de estudio'),
                             onTap: () async {
-                              Resource? updatedResource;
+                              dynamic result;
 
                               if (res.type == 'tarea') {
-                                updatedResource =
-                                    await Navigator.push<Resource>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const TaskDetailScreen(),
-                                        settings: RouteSettings(arguments: res),
-                                      ),
-                                    );
+                                result = await Navigator.push<dynamic>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const TaskDetailScreen(),
+                                    settings: RouteSettings(arguments: res),
+                                  ),
+                                );
                               } else if (res.type == 'material') {
-                                updatedResource =
-                                    await Navigator.push<Resource>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const MaterialDetailScreen(),
-                                        settings: RouteSettings(arguments: res),
-                                      ),
-                                    );
+                                result = await Navigator.push<dynamic>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const MaterialDetailScreen(),
+                                    settings: RouteSettings(arguments: res),
+                                  ),
+                                );
                               }
 
-                              if (updatedResource != null && context.mounted) {
+                              if (result != null && context.mounted) {
                                 await provider.loadCourse(courseId);
                               }
                             },

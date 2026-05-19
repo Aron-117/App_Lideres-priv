@@ -50,7 +50,6 @@ class TeacherSubmissionsProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print(e);
       // Relanzamos el error para que la UI pueda mostrar un SnackBar
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }

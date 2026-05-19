@@ -11,8 +11,6 @@ import '../../core/providers/task_detail_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/utils/user_roles.dart';
 
-import '../../services/task_service.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 class TaskDetailScreen extends StatefulWidget {
@@ -144,6 +142,76 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    // 3. NUEVO BOTÓN: Eliminar Tarea
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surfaceWhite,
+                        foregroundColor: AppColors.error,
+                        elevation: 0,
+                        side: const BorderSide(
+                          color: AppColors.error,
+                          width: 1.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: provider.isUploading
+                          ? null
+                          : () async {
+                              // 1. Mostrar diálogo
+                              final confirm = await _showConfirmDialog(
+                                context,
+                                title: 'Eliminar tarea',
+                                content:
+                                    '¿Estás seguro de que deseas eliminar esta tarea de forma permanente? Se perderán todas las entregas asociadas.',
+                              );
+
+                              if (confirm == true) {
+                                // 2. Ejecutar servicio
+                                final success = await provider
+                                    .deleteCurrentTask(task.id);
+                                // 3. Validar si el widget sigue en pantalla
+                                if (!context.mounted) {
+                                  return;
+                                }
+
+                                if (success) {
+                                  // Forzamos el retroceso usando Navigator.of
+                                  Navigator.of(context).pop(true);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        provider.message ??
+                                            'Error desconocido al eliminar',
+                                      ),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      icon: provider.isUploading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: AppColors.error,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.delete_outline, size: 20),
+                      label: const Text(
+                        'Eliminar tarea',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary, // Color distintivo
@@ -201,7 +269,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ResourceAttachmentsSection(
                     resourceId: task.id,
                     isTeacher: currentUserRole.canEditCourses,
-                    apiPath: 'archivo-material',
+                    apiPath: 'archivo-tarea',
                   ),
                   const SizedBox(height: 32),
 

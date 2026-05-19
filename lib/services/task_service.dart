@@ -222,10 +222,34 @@ class TaskService {
         'comentario_profesor': comentario,
       }),
     );
-    print(response.body);
 
     if (response.statusCode != 200) {
       throw Exception('Error al guardar la calificación del alumno.');
+    }
+  }
+
+  Future<void> deleteTask(int tareaId) async {
+    final token = await _storage.read(key: 'jwt_token');
+    if (token == null) throw Exception('No hay sesión activa.');
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/tarea/$tareaId');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Error al eliminar la tarea.');
+      } catch (_) {
+        throw Exception(
+          'Error del servidor al eliminar la tarea (${response.statusCode}).',
+        );
+      }
     }
   }
 }

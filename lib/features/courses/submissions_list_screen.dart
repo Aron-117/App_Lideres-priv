@@ -270,7 +270,6 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
                 itemBuilder: (context, index) {
                   final entrega = provider.submissions[index];
                   final usuario = entrega['usuario'] ?? {};
-                  print(usuario);
                   final nombreAlumno = '${usuario['nombre'] ?? 'Alumno'}'
                       .trim();
                   final archivos = List<dynamic>.from(
