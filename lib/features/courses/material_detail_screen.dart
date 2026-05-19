@@ -2,6 +2,7 @@ import 'package:app_lideres/core/models/resource_model.dart';
 import 'package:app_lideres/core/providers/auth_provider.dart';
 import 'package:app_lideres/core/providers/resource_provider.dart';
 import 'package:app_lideres/core/utils/user_roles.dart';
+import 'package:app_lideres/core/widgets/resource_attachments_section.dart';
 import 'package:app_lideres/features/courses/create_material_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -190,36 +191,10 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                 border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
               ),
 
-              child: const Column(
-                children: [
-                  Icon(
-                    Icons.insert_drive_file_outlined,
-                    size: 40,
-                    color: AppColors.primary,
-                  ),
-
-                  SizedBox(height: 12),
-
-                  Text(
-                    'Descarga próximamente',
-
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-
-                  SizedBox(height: 8),
-
-                  Text(
-                    'El soporte para visualización y descarga de archivos se habilitará en la próxima actualización.',
-
-                    textAlign: TextAlign.center,
-
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                ],
+              child: ResourceAttachmentsSection(
+                resourceId: material.id,
+                isTeacher: currentUserRole.canEditCourses,
+                apiPath: 'archivo-material',
               ),
             ),
           ],

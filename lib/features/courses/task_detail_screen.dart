@@ -1,4 +1,5 @@
 import 'package:app_lideres/core/providers/resource_provider.dart';
+import 'package:app_lideres/core/widgets/resource_attachments_section.dart';
 import 'package:app_lideres/features/courses/create_task_screen.dart';
 import 'package:app_lideres/features/courses/submissions_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -197,39 +198,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   const SizedBox(height: 12),
 
                   /// DESCARGAR MATERIAL
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () async {
-                        try {
-                          final url = await TaskService().getDownloadUrl(
-                            task.id,
-                          );
-                          final uri = Uri.parse(url);
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(e.toString())));
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.download_rounded,
-                        color: AppColors.primary,
-                      ),
-                      label: const Text(
-                        'Descargar material adjunto',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
+                  ResourceAttachmentsSection(
+                    resourceId: task.id,
+                    isTeacher: currentUserRole.canEditCourses,
+                    apiPath: 'archivo-material',
                   ),
                   const SizedBox(height: 32),
 
