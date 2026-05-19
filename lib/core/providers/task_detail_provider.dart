@@ -5,27 +5,45 @@ import '../../services/task_service.dart';
 class TaskDetailProvider extends ChangeNotifier {
   final TaskService _service = TaskService();
 
-  // Cambiamos File por PlatformFile
   PlatformFile? _selectedFile;
   bool _isUploading = false;
   String? _message;
   bool _isSuccess = false;
+  bool _alreadySubmitted = false;
+  Map<String, dynamic>? _submissionData;
 
+  // Getters
+  bool get alreadySubmitted => _alreadySubmitted;
   PlatformFile? get selectedFile => _selectedFile;
   bool get isUploading => _isUploading;
   String? get message => _message;
   bool get isSuccess => _isSuccess;
+  Map<String, dynamic>? get submissionData => _submissionData;
+
+  List<dynamic> get submissionFiles =>
+      _submissionData?['entrega']?['archivos'] ?? [];
+
+  Future<void> loadSubmissionStatus(int tareaId) async {
+    try {
+      final result = await _service.getSubmissionStatus(tareaId);
+      _alreadySubmitted = result['entregado'] ?? false;
+      _submissionData = result;
+      _message = null; // Limpiamos mensajes previos al recargar
+      notifyListeners();
+    } catch (e) {
+      _message = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+    }
+  }
 
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png'],
-      // CRÍTICO PARA WEB: Obliga a Flutter a cargar los bytes a la RAM
       withData: true,
     );
 
     if (result != null) {
-      // Guardamos el objeto multiplataforma completo
       _selectedFile = result.files.single;
       _message = null;
       notifyListeners();
@@ -37,22 +55,79 @@ class TaskDetailProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> submitTask(int idEntrega) async {
-    if (_selectedFile == null) {
-      _message = "Por favor, selecciona un archivo primero.";
-      notifyListeners();
-      return;
-    }
-
+  Future<void> submitTask(int tareaId) async {
     _isUploading = true;
     _message = null;
     notifyListeners();
 
     try {
-      _isSuccess = await _service.uploadTaskFile(idEntrega, _selectedFile!);
-      if (_isSuccess) {
-        _message = "¡Tarea entregada con éxito!";
+      final entregaId = await _service.createOrGetEntrega(tareaId);
+
+      if (_selectedFile != null) {
+        _isSuccess = await _service.uploadTaskFile(entregaId, _selectedFile!);
+      } else {
+        _isSuccess = true;
       }
+
+      _message = "¡Tarea entregada con éxito!";
+
+      // Recargamos el estado desde el servidor para actualizar los archivos y la UI limpiamente
+      await loadSubmissionStatus(tareaId);
+    } catch (e) {
+      _isSuccess = false;
+      _message = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  /// ==========================================
+  /// NUEVO: CANCELAR / ANULAR LA ENTREGA COMPLETA
+  /// ==========================================
+  Future<void> cancelSubmission(int tareaId) async {
+    _isUploading = true;
+    _message = null;
+    notifyListeners();
+
+    try {
+      // 1. Llamar al servicio encargado de borrar la entrega o cambiar su estado en el backend
+      // Nota: Asegúrate de implementar 'cancelSubmission' en tu TaskService
+      await _service.cancelSubmission(
+        _submissionData?['entrega']?['id_entrega'],
+      );
+
+      // 2. Si el backend responde bien, limpiamos el estado localmente
+      _alreadySubmitted = false;
+      _submissionData = null;
+      _selectedFile = null;
+      _isSuccess = false;
+      _message = "Entrega anulada con éxito.";
+    } catch (e) {
+      _message = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  /// ==========================================
+  /// NUEVO: ELIMINAR UN ARCHIVO INDIVIDUAL
+  /// ==========================================
+  Future<void> deleteSubmittedFile(int fileId, int tareaId) async {
+    _isUploading = true;
+    _message = null;
+    notifyListeners();
+    print(fileId);
+    try {
+      // 1. Llamar al backend para eliminar el archivo físico y su registro en BD
+      // Nota: Asegúrate de implementar 'deleteSubmissionFile' en tu TaskService
+      await _service.deleteSubmissionFile(fileId);
+
+      _message = "Archivo eliminado correctamente.";
+
+      // 2. Refrescamos el estado para que desaparezca de la lista 'submissionFiles'
+      await loadSubmissionStatus(tareaId);
     } catch (e) {
       _message = e.toString().replaceAll('Exception: ', '');
     } finally {

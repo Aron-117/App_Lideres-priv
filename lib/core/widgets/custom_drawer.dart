@@ -14,7 +14,7 @@ class CustomDrawer extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
     final bool canManageUsers = user?.role.canManageUsers ?? false;
-    
+    final currentUserRole = auth.currentUser?.role ?? UserRole.estudiante;
     // NUEVO: Escuchamos los cursos del backend que ya cargó el HomeScreen
     final courseProvider = context.watch<CourseProvider>();
 
@@ -26,7 +26,6 @@ class CustomDrawer extends StatelessWidget {
       Colors.purple.shade100,
       Colors.teal.shade100,
     ];
-
     return Drawer(
       backgroundColor: AppColors.surfaceWhite,
       child: Column(
@@ -92,7 +91,7 @@ class CustomDrawer extends StatelessWidget {
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                 ),
-                
+
                 // 1. CORRECCIÓN: Botón "Pendientes" antes del desplegable de clases
                 _buildDrawerItem(
                   icon: Icons.assignment_rounded,
@@ -105,11 +104,19 @@ class CustomDrawer extends StatelessWidget {
 
                 // 2. CORRECCIÓN: Desplegable dinámico conectado al backend
                 Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
-                    leading: const Icon(Icons.school_rounded, color: AppColors.primaryDark, size: 26),
-                    title: const Text(
-                      'Clases que cursas',
+                    leading: const Icon(
+                      Icons.school_rounded,
+                      color: AppColors.primaryDark,
+                      size: 26,
+                    ),
+                    title: Text(
+                      (currentUserRole == UserRole.profesor)
+                          ? "Clases que impartes"
+                          : "Clases que cursas",
                       style: TextStyle(
                         color: AppColors.primaryDark,
                         fontWeight: FontWeight.w600,
@@ -126,10 +133,10 @@ class CustomDrawer extends StatelessWidget {
                           padding: EdgeInsets.all(16.0),
                           child: Center(
                             child: SizedBox(
-                              width: 24, 
-                              height: 24, 
-                              child: CircularProgressIndicator(strokeWidth: 2)
-                            )
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
                           ),
                         )
                       else if (courseProvider.courses.isEmpty)
@@ -137,7 +144,10 @@ class CustomDrawer extends StatelessWidget {
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'No tienes materias asignadas.',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
                           ),
                         )
                       else
@@ -148,11 +158,15 @@ class CustomDrawer extends StatelessWidget {
                             nombre: courseProvider.courses[i].title,
                             // Si tu modelo tiene una propiedad sigla específica, cámbiala aquí.
                             // Por ahora usamos la descripción asumiendo que contiene detalles breves.
-                            sigla: courseProvider.courses[i].description, 
-                            inicial: courseProvider.courses[i].title.isNotEmpty 
-                                ? courseProvider.courses[i].title[0].toUpperCase() 
+                            sigla: courseProvider.courses[i].description,
+                            inicial: courseProvider.courses[i].title.isNotEmpty
+                                ? courseProvider.courses[i].title[0]
+                                      .toUpperCase()
                                 : 'C',
-                            color: avatarColors[i % avatarColors.length], // Alterna colores cíclicamente
+                            color:
+                                avatarColors[i %
+                                    avatarColors
+                                        .length], // Alterna colores cíclicamente
                             courseId: courseProvider.courses[i].id,
                           ),
                     ],
@@ -199,7 +213,7 @@ class CustomDrawer extends StatelessWidget {
   }
 
   // Widget auxiliar dinámico para las materias
-// Widget auxiliar dinámico para las materias
+  // Widget auxiliar dinámico para las materias
   Widget _buildMateriaItem({
     required BuildContext context,
     required String nombre,
@@ -234,10 +248,7 @@ class CustomDrawer extends StatelessWidget {
       ),
       subtitle: Text(
         sigla,
-        style: TextStyle(
-          color: Colors.grey.shade600,
-          fontSize: 12,
-        ),
+        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),

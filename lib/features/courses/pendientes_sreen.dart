@@ -1,3 +1,5 @@
+import 'package:app_lideres/core/models/resource_model.dart';
+import 'package:app_lideres/features/courses/task_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -61,6 +63,31 @@ class PendientesScreen extends StatelessWidget {
                               (t) => TaskListTile(
                                 title: t.title,
                                 description: t.courseName,
+                                onTap: () async {
+                                  final resource = Resource(
+                                    id: t.id,
+                                    title: t.title,
+                                    description: t.description,
+                                    dueDate: t.dueDate,
+                                    type: 'tarea',
+                                  );
+                                  final updatedTask =
+                                      await Navigator.push<Resource>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const TaskDetailScreen(),
+                                          settings: RouteSettings(
+                                            arguments: resource,
+                                          ),
+                                        ),
+                                      );
+                                  if (updatedTask != null && context.mounted) {
+                                    context
+                                        .read<PendingTasksProvider>()
+                                        .loadTasks();
+                                  }
+                                },
                               ),
                             )
                             .toList(),
@@ -75,6 +102,31 @@ class PendientesScreen extends StatelessWidget {
                               (t) => TaskListTile(
                                 title: t.title,
                                 description: t.courseName,
+                                onTap: () async {
+                                  final resource = Resource(
+                                    id: t.id,
+                                    title: t.title,
+                                    description: t.description,
+                                    dueDate: t.dueDate,
+                                    type: 'tarea',
+                                  );
+                                  final updatedTask =
+                                      await Navigator.push<Resource>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const TaskDetailScreen(),
+                                          settings: RouteSettings(
+                                            arguments: resource,
+                                          ),
+                                        ),
+                                      );
+                                  if (updatedTask != null && context.mounted) {
+                                    context
+                                        .read<PendingTasksProvider>()
+                                        .loadTasks();
+                                  }
+                                },
                               ),
                             )
                             .toList(),
@@ -89,6 +141,31 @@ class PendientesScreen extends StatelessWidget {
                               (t) => TaskListTile(
                                 title: t.title,
                                 description: t.courseName,
+                                onTap: () async {
+                                  final resource = Resource(
+                                    id: t.id,
+                                    title: t.title,
+                                    description: t.description,
+                                    dueDate: t.dueDate,
+                                    type: 'tarea',
+                                  );
+                                  final updatedTask =
+                                      await Navigator.push<Resource>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const TaskDetailScreen(),
+                                          settings: RouteSettings(
+                                            arguments: resource,
+                                          ),
+                                        ),
+                                      );
+                                  if (updatedTask != null && context.mounted) {
+                                    context
+                                        .read<PendingTasksProvider>()
+                                        .loadTasks();
+                                  }
+                                },
                               ),
                             )
                             .toList(),
