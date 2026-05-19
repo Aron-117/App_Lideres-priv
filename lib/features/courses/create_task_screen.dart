@@ -16,12 +16,9 @@ class CreateTaskScreen extends StatefulWidget {
 
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
-
   late final TextEditingController _titleController;
   late final TextEditingController _descController;
-
   DateTime? _selectedDate;
-
   bool _isLoading = false;
 
   bool get isEditing => widget.task != null;
@@ -29,13 +26,10 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   @override
   void initState() {
     super.initState();
-
     _titleController = TextEditingController(text: widget.task?.title ?? '');
-
     _descController = TextEditingController(
       text: widget.task?.description ?? '',
     );
-
     _selectedDate = widget.task?.dueDate;
   }
 
@@ -43,21 +37,16 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
-
     super.dispose();
   }
 
   Future<void> _pickDate() async {
     final date = await showDatePicker(
       context: context,
-
       initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
-
       firstDate: DateTime.now(),
-
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-
     if (date != null) {
       setState(() {
         _selectedDate = date;
@@ -86,7 +75,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     };
 
     final provider = context.read<ResourceProvider>();
-
     bool success = false;
 
     try {
@@ -111,11 +99,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         type: 'tarea',
         dueDate: _selectedDate,
       );
-
       if (!mounted) return;
-
       Navigator.pop(context, updatedTask);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -143,76 +128,63 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppColors.primaryDark,
           ),
-
           onPressed: () => Navigator.pop(context),
         ),
-
         title: Text(
           isEditing ? 'Editar Tarea' : 'Crear Tarea',
-
           style: const TextStyle(color: AppColors.primaryDark),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
-
         child: Form(
           key: _formKey,
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-
             children: [
+              // --- CAMPO TÍTULO CORREGIDO ---
               TextFormField(
                 controller: _titleController,
-
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Título de la tarea',
-
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-
+                  // Truco del Login: UnderlineInputBorder sin borde visible
+                  border: UnderlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
               ),
 
               const SizedBox(height: 16),
 
+              // --- CAMPO DESCRIPCIÓN CORREGIDO ---
               TextFormField(
                 controller: _descController,
                 maxLines: 4,
-
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Descripción',
-
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-
+                  // Truco del Login: UnderlineInputBorder sin borde visible
+                  border: UnderlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
               ),
@@ -221,25 +193,19 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
               InkWell(
                 onTap: _pickDate,
-
                 child: Container(
                   padding: const EdgeInsets.all(16),
-
                   decoration: BoxDecoration(
                     color: AppColors.surfaceWhite,
-
                     borderRadius: BorderRadius.circular(12),
                   ),
-
                   child: Row(
                     children: [
                       const Icon(
                         Icons.calendar_today,
                         color: AppColors.primary,
                       ),
-
                       const SizedBox(width: 12),
-
                       Text(
                         _selectedDate == null
                             ? 'Seleccionar fecha de entrega'
@@ -247,7 +213,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                                   '${_selectedDate!.day}/'
                                   '${_selectedDate!.month}/'
                                   '${_selectedDate!.year}',
-
                         style: const TextStyle(fontSize: 16),
                       ),
                     ],
@@ -259,36 +224,27 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
               Container(
                 padding: const EdgeInsets.all(20),
-
                 decoration: BoxDecoration(
                   color: AppColors.surfaceWhite,
-
                   borderRadius: BorderRadius.circular(12),
-
                   border: Border.all(
                     color: AppColors.secondary.withOpacity(0.3),
                     width: 1.5,
                   ),
                 ),
-
                 child: Column(
                   children: [
                     Icon(
                       isEditing ? Icons.edit_rounded : Icons.assignment_rounded,
-
                       color: AppColors.primary,
                       size: 32,
                     ),
-
                     const SizedBox(height: 8),
-
                     Text(
                       isEditing
                           ? 'Estás modificando una tarea existente.'
                           : 'Completa la información para publicar la tarea.',
-
                       textAlign: TextAlign.center,
-
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
@@ -300,28 +256,21 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryDark,
-
                   foregroundColor: AppColors.surfaceWhite,
-
                   padding: const EdgeInsets.symmetric(vertical: 16),
-
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-
                 onPressed: _isLoading ? null : _submit,
-
                 child: _isLoading
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
                         isEditing ? 'Guardar Cambios' : 'Publicar Tarea',
-
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

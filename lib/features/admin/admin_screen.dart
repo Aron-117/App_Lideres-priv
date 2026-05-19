@@ -13,6 +13,7 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _searchController = TextEditingController();
+  
   @override
   void initState() {
     super.initState();
@@ -105,39 +106,89 @@ class _AdminScreenState extends State<AdminScreen> {
 
                   return ListView.separated(
                     itemCount: provider.users.length,
-                    separatorBuilder: (context, index) => const Divider(),
+                    // Cambiamos el Divider por un espacio transparente para separar las tarjetas
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final user = provider.users[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.secondary.withOpacity(0.2),
-                          child: Text(user.name[0].toUpperCase()),
-                        ),
-                        title: Text(
-                          user.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text('${user.email} • ${user.role.name}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.edit_square,
-                                color: AppColors.primary,
-                              ),
-                              onPressed: () => _showUserDialog(user),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                color: AppColors.error,
-                              ),
-                              onPressed: () =>
-                                  _showDeleteDialog(context, provider, user),
+                      
+                      // Envolvemos el ListTile en un Container estilo "Task Tile"
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceWhite,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04), // Sombra muy sutil
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
+                        ),
+                        child: ListTile(
+                          // Le damos padding interno para que respire
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: CircleAvatar(
+                            backgroundColor: AppColors.secondary.withOpacity(0.2),
+                            child: Text(
+                              user.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                color: AppColors.primaryDark,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              '${user.email} \nRol: ${user.role.name}',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                height: 1.3, // Mejora la lectura del subtítulo
+                              ),
+                            ),
+                          ),
+                          isThreeLine: true, // Da más espacio vertical al ListTile
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.edit_square,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => _showUserDialog(user),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.error.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: AppColors.error,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => _showDeleteDialog(context, provider, user),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -155,22 +206,32 @@ class _AdminScreenState extends State<AdminScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Usuario'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Eliminar Usuario',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: Text('¿Estás seguro de que quieres eliminar a ${user.name}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             onPressed: () {
               provider.removeUser(user.id);
               Navigator.pop(context);
             },
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: AppColors.error),
-            ),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
