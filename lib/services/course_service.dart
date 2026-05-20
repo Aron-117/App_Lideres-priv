@@ -73,7 +73,6 @@ class CourseService {
   Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/material');
-
     data['id_curso'] = courseId;
 
     final response = await http.post(
@@ -84,7 +83,7 @@ class CourseService {
       },
       body: jsonEncode(data),
     );
-
+    print(response.body);
     return response.statusCode == 200 || response.statusCode == 201;
   }
 

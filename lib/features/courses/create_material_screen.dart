@@ -7,7 +7,8 @@ import '../../core/providers/resource_provider.dart';
 
 class CreateMaterialScreen extends StatefulWidget {
   final Resource? material;
-  const CreateMaterialScreen({super.key, this.material});
+  final int? courseId;
+  const CreateMaterialScreen({super.key, this.courseId, this.material});
 
   @override
   State<CreateMaterialScreen> createState() => _CreateMaterialScreenState();
@@ -55,8 +56,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
       if (isEditing) {
         success = await provider.updateMaterial(widget.material!.id, data);
       } else {
-        data['fecha_subida'] = DateTime.now().toIso8601String();
-        success = await provider.createMaterial(data);
+        success = await provider.createMaterial(widget.courseId!, data);
       }
     } finally {
       if (mounted) {
@@ -136,7 +136,10 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
@@ -157,7 +160,10 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
               ),
 

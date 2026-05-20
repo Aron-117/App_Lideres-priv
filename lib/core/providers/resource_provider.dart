@@ -56,12 +56,12 @@ class ResourceProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createMaterial(Map<String, dynamic> data) async {
+  Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
     try {
-      final success = await _service.createMaterial(courseId!, data);
+      final success = await _service.createMaterial(courseId, data);
 
       if (success) {
-        await loadCourse(courseId!);
+        await loadCourse(courseId);
       }
 
       return success;

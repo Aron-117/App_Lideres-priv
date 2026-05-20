@@ -301,7 +301,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                     MaterialPageRoute(
                       builder: (_) => ChangeNotifierProvider.value(
                         value: provider,
-                        child: CreateMaterialScreen(),
+                        child: CreateMaterialScreen(courseId: courseId),
                       ),
                     ),
                   );

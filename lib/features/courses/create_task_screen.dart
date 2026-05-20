@@ -162,7 +162,10 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
@@ -183,7 +186,10 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,

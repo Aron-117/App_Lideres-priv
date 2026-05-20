@@ -76,7 +76,6 @@ class _UserFormDialogState extends State<UserFormDialog> {
         'correo': _emailController.text.trim(),
         'password': _passwordController.text,
         'rol': roleString,
-        'fecha_registro': DateTime.now().toIso8601String(),
       };
       success = await provider.createUser(newUser);
     }
