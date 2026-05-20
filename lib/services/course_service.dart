@@ -120,4 +120,32 @@ class CourseService {
     );
     return response.statusCode == 200;
   }
+
+  // Método 7: Eliminar material
+  Future<bool> deleteMaterial(int materialId) async {
+    final token = await _storage.read(key: 'jwt_token');
+    if (token == null) throw Exception('No hay sesión activa.');
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/material/$materialId');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Error al eliminar el material.');
+      } catch (_) {
+        throw Exception(
+          'Error del servidor al eliminar el material (${response.statusCode}).',
+        );
+      }
+    }
+    return true;
+  }
 }

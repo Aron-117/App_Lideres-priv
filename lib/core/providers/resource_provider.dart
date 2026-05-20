@@ -106,4 +106,23 @@ class ResourceProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  // Agregar dentro de la clase ResourceProvider
+  // Agregar dentro de la clase ResourceProvider
+  Future<bool> deleteMaterial(int materialId) async {
+    try {
+      // Usamos "_service", que es el nombre real de tu variable en este archivo
+      await _service.deleteMaterial(materialId);
+      
+      // Borramos de la lista local
+      _resources.removeWhere((item) => item.id == materialId);
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
 }
