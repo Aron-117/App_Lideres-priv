@@ -190,7 +190,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
                     Text(
                       isEditing
                           ? 'Estás modificando un material existente.'
-                          : 'La subida de archivos adjuntos se habilitará próximamente.',
+                          : 'La subida de archivos estará disponibe al crearse el material.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
