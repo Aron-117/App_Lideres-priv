@@ -24,7 +24,6 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       _courses = await _service.fetchCourses();
-      print(_courses);
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
