@@ -28,6 +28,29 @@ class CourseService {
       throw Exception('Error al cargar los cursos.');
     }
   }
+  // Método exclusivo para el ADMIN: Obtener TODOS los cursos de la plataforma
+  Future<List<Course>> fetchAllCourses() async {
+    final token = await _storage.read(key: 'jwt_token');
+    if (token == null) throw Exception('No hay sesión activa.');
+
+    // Asumimos que la ruta estándar REST para obtener todos es /curso
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso'); 
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      return body.map((dynamic item) => Course.fromJson(item)).toList();
+    } else {
+      throw Exception('Error al cargar todos los cursos.');
+    }
+  }
+
 
   // Método 2: Obtener recursos de un curso específico
   Future<List<Resource>> fetchCourseResources(int courseId) async {
@@ -147,5 +170,49 @@ class CourseService {
       }
     }
     return true;
+  }
+
+
+  // --- MÉTODOS PARA GESTIÓN DE CURSOS (ADMIN) ---
+
+  Future<bool> createCourse(Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  Future<bool> updateCourse(int courseId, Map<String, dynamic> data) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso/$courseId');
+    final response = await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteCourse(int courseId) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso/$courseId');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return response.statusCode == 200 || response.statusCode == 204;
   }
 }
