@@ -33,7 +33,7 @@ class CourseProvider extends ChangeNotifier {
   }
 
   // --- PUENTES PARA GESTIÓN DE CURSOS ---
-  
+
   Future<bool> createCourse(Map<String, dynamic> data) async {
     try {
       final success = await _service.createCourse(data);
@@ -84,6 +84,40 @@ class CourseProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> inscribirEstudianteEnCurso(int idUsuario, int idCurso) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Llamamos al servicio que acabamos de crear
+      final success = await _service.inscribirEstudiante(idUsuario, idCurso);
+
+      if (success) {
+        // Opcional: Recargamos los cursos para que el número de cupos
+        // disponibles se actualice visualmente en la pantalla del administrador
+        await loadAllCourses();
+      }
+      return success;
+    } catch (e) {
+      // Limpiamos la palabra 'Exception: ' que Dart le pone por defecto a los errores
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+
+      // Manejo de errores de validación de NestJS (class-validator)
+      // A veces NestJS devuelve un array de errores ["El email debe ser válido", etc]
+      if (_errorMessage!.startsWith('[')) {
+        _errorMessage =
+            'Error en los datos de inscripción. Revisa la información.';
+      }
+
+      return false;
+    } finally {
+      // Siempre detenemos el estado de carga, haya éxito o error
       _isLoading = false;
       notifyListeners();
     }

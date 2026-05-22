@@ -28,13 +28,14 @@ class CourseService {
       throw Exception('Error al cargar los cursos.');
     }
   }
+
   // Método exclusivo para el ADMIN: Obtener TODOS los cursos de la plataforma
   Future<List<Course>> fetchAllCourses() async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) throw Exception('No hay sesión activa.');
 
     // Asumimos que la ruta estándar REST para obtener todos es /curso
-    final url = Uri.parse('${ApiConstants.baseUrl}/curso'); 
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso');
     final response = await http.get(
       url,
       headers: {
@@ -42,7 +43,7 @@ class CourseService {
         'Authorization': 'Bearer $token',
       },
     );
-    
+
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       return body.map((dynamic item) => Course.fromJson(item)).toList();
@@ -50,7 +51,6 @@ class CourseService {
       throw Exception('Error al cargar todos los cursos.');
     }
   }
-
 
   // Método 2: Obtener recursos de un curso específico
   Future<List<Resource>> fetchCourseResources(int courseId) async {
@@ -191,9 +191,6 @@ class CourseService {
     return true;
   }
 
-
-  // --- MÉTODOS PARA GESTIÓN DE CURSOS (ADMIN) ---
-
   Future<bool> createCourse(Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/curso');
@@ -233,5 +230,38 @@ class CourseService {
       },
     );
     return response.statusCode == 200 || response.statusCode == 204;
+  }
+
+  Future<bool> inscribirEstudiante(int idUsuario, int idCurso) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/inscripcion');
+
+    try {
+      final response = await http.post(
+        url,
+        // _getHeaders() o el método que uses para inyectar el Token (Bearer)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'id_usuario': idUsuario,
+          'id_curso': idCurso,
+          'estado': 'ACTIVO', // Estado por defecto, según tu backend
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        final body = jsonDecode(response.body);
+        final errorMessage =
+            body['message'] ?? 'Error desconocido al inscribir';
+
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 }

@@ -68,4 +68,26 @@ class AdminService {
 
     return response.statusCode == 200 || response.statusCode == 204;
   }
+
+  Future<List<User>> fetchStudents() async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/usuario/estudiantes');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        // Mapeamos al mismo modelo de Usuario que ya utilizas
+        return data.map((json) => User.fromJson(json)).toList();
+      } else {
+        throw Exception('Error al obtener la lista de estudiantes');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
