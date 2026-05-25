@@ -56,9 +56,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         task = updatedTask;
       });
     }
-    if (mounted) {
-      Navigator.pop(context, updatedTask);
-    }
   }
 
   @override
@@ -92,30 +89,123 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  /// HEADER
-                  Text(
-                    task.title,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 26,
-                      color: AppColors.primaryDark,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  /// --- ENCABEZADO ESTILO CLASSROOM ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.title,
+                              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                fontSize: 26,
+                                color: AppColors.primaryDark,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            if (task.dueDate != null)
+                              Text(
+                                'Límite: '
+                                '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year} - '
+                                '${task.dueDate!.hour.toString().padLeft(2, '0')}:${task.dueDate!.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      
+                      // Bloque de Puntuación Flotante
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (!isTeacher && provider.isGraded) ...[
+                            Text(
+                              '${provider.studentScore}/${task.maxScore ?? 100}',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800, // o FontWeight.bold
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const Text(
+                              'Calificado',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              '${task.maxScore ?? 100} pts',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                            if (!isTeacher)
+                              Text(
+                                provider.alreadySubmitted ? 'Entregado' : 'Asignado',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: provider.alreadySubmitted ? Colors.green : Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  if (task.dueDate != null)
-                    Text(
-                      'Fecha de entrega: '
-                      '${task.dueDate!.day}/'
-                      '${task.dueDate!.month}/'
-                      '${task.dueDate!.year}',
-                      style: const TextStyle(
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 24),
+
+                  /// --- COMENTARIO DEL PROFESOR (SI EXISTE) ---
+                  if (!isTeacher && provider.isGraded && provider.teacherComment != null && provider.teacherComment!.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade100),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.insert_comment_rounded, color: Colors.blue, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Retroalimentación del profesor:',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '"${provider.teacherComment!}"',
+                                  style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: AppColors.primaryDark),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+                  ],
 
-                  /// BOTÓN EDITAR (Profesor)
+                  /// --- ACCIONES EXCLUSIVAS DEL PROFESOR ---
                   if (currentUserRole.canEditCourses) ...[
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -142,7 +232,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // 3. NUEVO BOTÓN: Eliminar Tarea
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.surfaceWhite,
@@ -160,7 +249,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       onPressed: provider.isUploading
                           ? null
                           : () async {
-                              // 1. Mostrar diálogo
                               final confirm = await _showConfirmDialog(
                                 context,
                                 title: 'Eliminar tarea',
@@ -169,16 +257,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               );
 
                               if (confirm == true) {
-                                // 2. Ejecutar servicio
                                 final success = await provider
                                     .deleteCurrentTask(task.id);
-                                // 3. Validar si el widget sigue en pantalla
                                 if (!context.mounted) {
                                   return;
                                 }
 
                                 if (success) {
-                                  // Forzamos el retroceso usando Navigator.of
                                   Navigator.of(context).pop(true);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -214,7 +299,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary, // Color distintivo
+                        backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.surfaceWhite,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -242,7 +327,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  /// DESCRIPCIÓN
+                  /// --- DESCRIPCIÓN E INSTRUCCIONES ---
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -265,7 +350,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  /// DESCARGAR MATERIAL
+                  /// --- ARCHIVOS ADJUNTOS DEL PROFESOR ---
                   ResourceAttachmentsSection(
                     resourceId: task.id,
                     isTeacher: currentUserRole.canEditCourses,
@@ -273,150 +358,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  /// VISTA DEL ALUMNO
+                  /// --- ESPACIO DE TRABAJO DEL ESTUDIANTE ---
                   if (!isTeacher) ...[
-                    /// ESTADO ENTREGA
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: provider.alreadySubmitted
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            provider.alreadySubmitted
-                                ? Icons.check_circle
-                                : Icons.pending,
-                            color: provider.alreadySubmitted
-                                ? Colors.green
-                                : Colors.orange,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              provider.alreadySubmitted
-                                  ? 'Ya entregaste esta tarea'
-                                  : 'Aún no entregaste esta tarea',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    /// ARCHIVOS ENTREGADOS
-                    if (provider.alreadySubmitted) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceWhite,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.secondary.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Archivos entregados',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primaryDark,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            if (provider.submissionFiles.isEmpty)
-                              const Text(
-                                'Entregado sin archivos adjuntos',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                ),
-                              )
-                            else
-                              ...provider.submissionFiles.map(
-                                (file) => Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.backgroundLight,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.insert_drive_file,
-                                        color: AppColors.primary,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          file['nombre_archivo'] ?? 'Archivo',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      // Botón Descargar
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.download_rounded,
-                                          size: 20,
-                                        ),
-                                        onPressed: () async {
-                                          final url = file['url'];
-                                          if (url == null) return;
-                                          final uri = Uri.parse(url);
-                                          await launchUrl(
-                                            uri,
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
-                                      ),
-                                      // NUEVO: Botón Eliminar Archivo Individual
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: AppColors.error,
-                                          size: 20,
-                                        ),
-                                        onPressed: () async {
-                                          final confirm = await _showConfirmDialog(
-                                            context,
-                                            title: 'Eliminar archivo',
-                                            content:
-                                                '¿Estás seguro de que quieres eliminar este archivo de tu entrega?',
-                                          );
-                                          if (confirm == true) {
-                                            // Nota: Asegúrate de que tu map 'file' contenga el ID único del archivo bajo la key 'id'
-                                            await provider.deleteSubmittedFile(
-                                              file['id_archivo'],
-                                              task.id,
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    /// SECCIÓN: TU TRABAJO (Solo visible si no ha entregado o quiere reentregar)
                     const Text(
                       'Tu trabajo',
                       style: TextStyle(
@@ -427,7 +370,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    /// PICKER DE ARCHIVOS
+                    /// Tarjeta de Carga / Selección de Archivo
                     Container(
                       height: 140,
                       decoration: BoxDecoration(
@@ -505,7 +448,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    /// MENSAJES DE ERROR/ÉXITO
+                    /// Mensajes de respuesta Informativa
                     if (provider.message != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 20),
@@ -521,10 +464,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                       ),
 
-                    /// ACCIONES DE ENTREGA (BOTÓN PRINCIPAL Y CANCELAR)
+                    /// Botones de Gestión de Entrega
                     Row(
                       children: [
-                        // Si ya está entregado, mostramos la opción de "Anular entrega" a la izquierda
                         if (provider.alreadySubmitted) ...[
                           Expanded(
                             child: OutlinedButton(
@@ -569,8 +511,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           ),
                           const SizedBox(width: 12),
                         ],
-
-                        // Botón Dinámico: Entregar / Reentregar
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -620,6 +560,94 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 32),
+
+                    /// Lista de Archivos Cargados de la Entrega
+                    if (provider.alreadySubmitted) ...[
+                      const Text(
+                        'Archivos entregados',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (provider.submissionFiles.isEmpty)
+                        const Text(
+                          'Entregado sin archivos adjuntos',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      else
+                        ...provider.submissionFiles.map(
+                          (file) => Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceWhite,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.insert_drive_file,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    file['nombre_archivo'] ?? 'Archivo',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.download_rounded,
+                                    size: 20,
+                                  ),
+                                  onPressed: () async {
+                                    final url = file['url'];
+                                    if (url == null) return;
+                                    final uri = Uri.parse(url);
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: AppColors.error,
+                                    size: 20,
+                                  ),
+                                  onPressed: () async {
+                                    final confirm = await _showConfirmDialog(
+                                      context,
+                                      title: 'Eliminar archivo',
+                                      content:
+                                          '¿Estás seguro de que quieres eliminar este archivo de tu entrega?',
+                                    );
+                                    if (confirm == true) {
+                                      await provider.deleteSubmittedFile(
+                                        file['id_archivo'],
+                                        task.id,
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ],
                 ],
               ),
@@ -630,7 +658,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     );
   }
 
-  /// Helper reutilizable para cuadros de diálogo de confirmación
   Future<bool?> _showConfirmDialog(
     BuildContext context, {
     required String title,

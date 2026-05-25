@@ -18,6 +18,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _descController;
+  late final TextEditingController _scoreController; 
   DateTime? _selectedDate;
   bool _isLoading = false;
 
@@ -30,6 +31,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     _descController = TextEditingController(
       text: widget.task?.description ?? '',
     );
+    _scoreController = TextEditingController(
+      text: widget.task?.maxScore?.toString() ?? '100',
+    );
     _selectedDate = widget.task?.dueDate;
   }
 
@@ -37,6 +41,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _scoreController.dispose(); 
     super.dispose();
   }
 
@@ -47,10 +52,26 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
+    
+    if (date != null && mounted) {
+      final time = await showTimePicker(
+        context: context,
+        initialTime: _selectedDate != null 
+            ? TimeOfDay.fromDateTime(_selectedDate!) 
+            : const TimeOfDay(hour: 23, minute: 59),
+      );
+
+      if (time != null) {
+        setState(() {
+          _selectedDate = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          );
+        });
+      }
     }
   }
 
@@ -60,7 +81,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor selecciona una fecha de entrega'),
+          content: Text('Por favor selecciona una fecha y hora de entrega'),
         ),
       );
       return;
@@ -68,10 +89,13 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
     setState(() => _isLoading = true);
 
+    // --- EL CAMBIO ESTÁ AQUÍ ---
     final Map<String, dynamic> data = {
       'titulo': _titleController.text.trim(),
       'descripcion': _descController.text.trim(),
       'fecha_entrega': _selectedDate!.toIso8601String(),
+      // Ahora enviamos "calificacion" como acordaste con tu compañero
+      'calificacion': int.tryParse(_scoreController.text.trim()) ?? 100,
     };
 
     final provider = context.read<ResourceProvider>();
@@ -98,6 +122,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         description: _descController.text.trim(),
         type: 'tarea',
         dueDate: _selectedDate,
+        maxScore: int.tryParse(_scoreController.text.trim()) ?? 100, 
       );
       if (!mounted) return;
       Navigator.pop(context, updatedTask);
@@ -150,22 +175,18 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // --- CAMPO TÍTULO CORREGIDO ---
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Título de la tarea',
+                  prefixIcon: Icon(Icons.title_rounded, color: AppColors.primary, size: 20),
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-                  // Truco del Login: UnderlineInputBorder sin borde visible
                   border: UnderlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
@@ -173,23 +194,19 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
               const SizedBox(height: 16),
 
-              // --- CAMPO DESCRIPCIÓN CORREGIDO ---
               TextFormField(
                 controller: _descController,
                 maxLines: 4,
                 decoration: const InputDecoration(
                   labelText: 'Descripción',
+                  prefixIcon: Icon(Icons.notes_rounded, color: AppColors.primary, size: 20),
                   filled: true,
                   fillColor: AppColors.surfaceWhite,
-                  // Truco del Login: UnderlineInputBorder sin borde visible
                   border: UnderlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
@@ -197,33 +214,60 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
               const SizedBox(height: 16),
 
-              InkWell(
-                onTap: _pickDate,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceWhite,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        color: AppColors.primary,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: InkWell(
+                      onTap: _pickDate,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceWhite,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time_filled_rounded,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _selectedDate == null
+                                    ? 'Establecer Fecha y Hora'
+                                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year} - ${_selectedDate!.hour.toString().padLeft(2, '0')}:${_selectedDate!.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _selectedDate == null
-                            ? 'Seleccionar fecha de entrega'
-                            : 'Entrega: '
-                                  '${_selectedDate!.day}/'
-                                  '${_selectedDate!.month}/'
-                                  '${_selectedDate!.year}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      controller: _scoreController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Puntos',
+                        prefixIcon: Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
+                        filled: true,
+                        fillColor: AppColors.surfaceWhite,
+                        border: UnderlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? 'Req.' : null,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 20),

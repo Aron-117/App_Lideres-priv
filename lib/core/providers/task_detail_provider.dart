@@ -12,6 +12,13 @@ class TaskDetailProvider extends ChangeNotifier {
   bool _alreadySubmitted = false;
   Map<String, dynamic>? _submissionData;
 
+  int? _studentScore;
+  String? _teacherComment;
+
+  int? get studentScore => _studentScore;
+  String? get teacherComment => _teacherComment;
+  bool get isGraded => _studentScore != null; // Saber si ya lo calificaron
+
   // Getters
   bool get alreadySubmitted => _alreadySubmitted;
   PlatformFile? get selectedFile => _selectedFile;
@@ -28,6 +35,16 @@ class TaskDetailProvider extends ChangeNotifier {
       final result = await _service.getSubmissionStatus(tareaId);
       _alreadySubmitted = result['entregado'] ?? false;
       _submissionData = result;
+
+      // NUEVO: Extraemos la calificación y el comentario si la tarea ya fue entregada
+      if (_alreadySubmitted && result['entrega'] != null) {
+        _studentScore = result['entrega']['calificacion'];
+        _teacherComment = result['entrega']['comentario_profesor'];
+      } else {
+        _studentScore = null;
+        _teacherComment = null;
+      }
+
       _message = null; // Limpiamos mensajes previos al recargar
       notifyListeners();
     } catch (e) {
@@ -92,7 +109,6 @@ class TaskDetailProvider extends ChangeNotifier {
 
     try {
       // 1. Llamar al servicio encargado de borrar la entrega o cambiar su estado en el backend
-      // Nota: Asegúrate de implementar 'cancelSubmission' en tu TaskService
       await _service.cancelSubmission(
         _submissionData?['entrega']?['id_entrega'],
       );
@@ -101,6 +117,8 @@ class TaskDetailProvider extends ChangeNotifier {
       _alreadySubmitted = false;
       _submissionData = null;
       _selectedFile = null;
+      _studentScore = null; // NUEVO: Limpiamos la calificación por seguridad
+      _teacherComment = null; // NUEVO: Limpiamos el comentario por seguridad
       _isSuccess = false;
       _message = "Entrega anulada con éxito.";
     } catch (e) {
@@ -120,7 +138,6 @@ class TaskDetailProvider extends ChangeNotifier {
     notifyListeners();
     try {
       // 1. Llamar al backend para eliminar el archivo físico y su registro en BD
-      // Nota: Asegúrate de implementar 'deleteSubmissionFile' en tu TaskService
       await _service.deleteSubmissionFile(fileId);
 
       _message = "Archivo eliminado correctamente.";

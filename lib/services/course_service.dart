@@ -75,11 +75,13 @@ class CourseService {
   }
 
   // Método 3: Crear tarea
+  // Método 3: Crear tarea
   Future<bool> createTask(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/tarea');
     // Aseguramos que el curso esté vinculado
     data['id_curso'] = courseId;
+    
     final response = await http.post(
       url,
       headers: {
@@ -89,7 +91,24 @@ class CourseService {
       body: jsonEncode(data),
     );
 
-    return response.statusCode == 200 || response.statusCode == 201;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      // --- NUEVO: Extraemos el error exacto de NestJS ---
+      try {
+        final errorData = jsonDecode(response.body);
+        
+        // NestJS a veces envía un array de mensajes si fallan varias validaciones
+        if (errorData['message'] is List) {
+          throw Exception(errorData['message'].join(', '));
+        }
+        
+        throw Exception(errorData['message'] ?? 'Error desconocido al crear tarea');
+      } catch (e) {
+        // Si no se puede decodificar, mostramos la excepción
+        throw Exception(e.toString().replaceAll('Exception: ', ''));
+      }
+    }
   }
 
   // Método 4: Crear material
