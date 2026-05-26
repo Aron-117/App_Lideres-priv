@@ -48,8 +48,12 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
     Map<String, dynamic> entrega,
     TeacherSubmissionsProvider provider,
   ) async {
-    final notaController = TextEditingController(text: entrega['calificacion']?.toString() ?? '');
-    final comentarioController = TextEditingController(text: entrega['comentario_profesor'] ?? '');
+    final notaController = TextEditingController(
+      text: entrega['calificacion']?.toString() ?? '',
+    );
+    final comentarioController = TextEditingController(
+      text: entrega['comentario_profesor'] ?? '',
+    );
     final formKey = GlobalKey<FormState>();
     bool isSaving = false;
 
@@ -59,8 +63,13 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text('Calificar entrega', style: TextStyle(fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Calificar entrega',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               content: Form(
                 key: formKey,
                 child: Column(
@@ -72,12 +81,15 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
                       decoration: InputDecoration(
                         labelText: 'Nota (Máx: ${widget.task.maxScore})',
                         prefixIcon: const Icon(Icons.military_tech),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       validator: (value) {
                         final n = int.tryParse(value ?? '');
                         if (n == null) return 'Ingresa un número';
-                        if (n > (widget.task.maxScore ?? 100)) return 'No supera los ${widget.task.maxScore} pts';
+                        if (n > (widget.task.maxScore ?? 100))
+                          return 'No supera los ${widget.task.maxScore} pts';
                         return null;
                       },
                     ),
@@ -87,34 +99,58 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
                       maxLines: 3,
                       decoration: InputDecoration(
                         labelText: 'Feedback (Opcional)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar'),
+                ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                  onPressed: isSaving ? null : () async {
-                    if (formKey.currentState!.validate()) {
-                      setStateDialog(() => isSaving = true);
-                      try {
-                        await provider.gradeSubmission(
-                          entrega['id_entrega'],
-                          int.parse(notaController.text),
-                          comentarioController.text.trim(),
-                          widget.task.maxScore ?? 100, // Pasamos el límite
-                        );
-                        if (context.mounted) Navigator.pop(dialogContext);
-                      } catch (e) {
-                        setStateDialog(() => isSaving = false);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error));
-                      }
-                    }
-                  },
-                  child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white)) : const Text('Guardar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryDark,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            setStateDialog(() => isSaving = true);
+                            try {
+                              await provider.gradeSubmission(
+                                entrega['id_entrega'],
+                                int.parse(notaController.text),
+                                comentarioController.text.trim(),
+                                widget.task.maxScore ??
+                                    100, // Pasamos el límite
+                              );
+                              if (context.mounted) Navigator.pop(dialogContext);
+                            } catch (e) {
+                              setStateDialog(() => isSaving = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.toString()),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : const Text('Guardar'),
                 ),
               ],
             );
@@ -355,7 +391,7 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Calificación: ${entrega['calificacion']}/100',
+                                        'Calificación: ${entrega['calificacion']}/${widget.task.maxScore}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.green,
