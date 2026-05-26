@@ -48,133 +48,73 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
     Map<String, dynamic> entrega,
     TeacherSubmissionsProvider provider,
   ) async {
-    // Controladores iniciados con los valores actuales (si ya estaba calificado)
-    final notaController = TextEditingController(
-      text: entrega['calificacion']?.toString() ?? '',
-    );
-    final comentarioController = TextEditingController(
-      text: entrega['comentario_profesor'] ?? '',
-    );
+    final notaController = TextEditingController(text: entrega['calificacion']?.toString() ?? '');
+    final comentarioController = TextEditingController(text: entrega['comentario_profesor'] ?? '');
+    final formKey = GlobalKey<FormState>();
     bool isSaving = false;
 
     await showDialog(
       context: context,
-      barrierDismissible: false,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text(
-                'Calificar entrega',
-                style: TextStyle(color: AppColors.primaryDark),
-              ),
-              content: SingleChildScrollView(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Calificar entrega', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Form(
+                key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
+                    TextFormField(
                       controller: notaController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Nota (Ej: 100)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.grade),
+                      decoration: InputDecoration(
+                        labelText: 'Nota (Máx: ${widget.task.maxScore})',
+                        prefixIcon: const Icon(Icons.military_tech),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
+                      validator: (value) {
+                        final n = int.tryParse(value ?? '');
+                        if (n == null) return 'Ingresa un número';
+                        if (n > (widget.task.maxScore ?? 100)) return 'No supera los ${widget.task.maxScore} pts';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    TextFormField(
                       controller: comentarioController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Comentario / Feedback',
-                        border: OutlineInputBorder(),
-                        alignLabelWithHint: true,
+                      decoration: InputDecoration(
+                        labelText: 'Feedback (Opcional)',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: isSaving
-                      ? null
-                      : () => Navigator.pop(dialogContext),
-                  child: const Text(
-                    'Cancelar',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                ),
+                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryDark,
-                  ),
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          final notaText = notaController.text.trim();
-                          if (notaText.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('La nota es obligatoria'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          final nota = int.tryParse(notaText);
-                          if (nota == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Por favor, ingresa un número válido',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-
-                          setStateDialog(() => isSaving = true);
-
-                          try {
-                            await provider.gradeSubmission(
-                              entrega['id_entrega'],
-                              nota,
-                              comentarioController.text.trim(),
-                            );
-                            if (context.mounted) Navigator.pop(dialogContext);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Calificación guardada con éxito',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            setStateDialog(() => isSaving = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          }
-                        },
-                  child: isSaving
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Guardar',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  onPressed: isSaving ? null : () async {
+                    if (formKey.currentState!.validate()) {
+                      setStateDialog(() => isSaving = true);
+                      try {
+                        await provider.gradeSubmission(
+                          entrega['id_entrega'],
+                          int.parse(notaController.text),
+                          comentarioController.text.trim(),
+                          widget.task.maxScore ?? 100, // Pasamos el límite
+                        );
+                        if (context.mounted) Navigator.pop(dialogContext);
+                      } catch (e) {
+                        setStateDialog(() => isSaving = false);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error));
+                      }
+                    }
+                  },
+                  child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white)) : const Text('Guardar'),
                 ),
               ],
             );

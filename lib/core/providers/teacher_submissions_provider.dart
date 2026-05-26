@@ -8,19 +8,14 @@ class TeacherSubmissionsProvider extends ChangeNotifier {
   String? _error;
   List<dynamic> _submissions = [];
 
-  // Getters
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<dynamic> get submissions => _submissions;
-
-  // Contador rápido para saber cuántos han entregado
-  int get totalSubmissions => _submissions.length;
 
   Future<void> fetchSubmissions(int tareaId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       _submissions = await _service.getSubmissionsByTask(tareaId);
     } catch (e) {
@@ -31,26 +26,21 @@ class TeacherSubmissionsProvider extends ChangeNotifier {
     }
   }
 
-  /// ==========================================
-  /// CALIFICAR Y ACTUALIZAR ESTADO LOCAL
-  /// ==========================================
-  Future<void> gradeSubmission(
-    int entregaId,
-    int nota,
-    String comentario,
-  ) async {
+  Future<void> gradeSubmission(int entregaId, int nota, String comentario, int maxScore) async {
+    // Validación de seguridad extra en el provider
+    if (nota > maxScore) {
+      throw Exception('La nota no puede ser mayor a $maxScore');
+    }
+    
     try {
       await _service.gradeSubmission(entregaId, nota, comentario);
-      final index = _submissions.indexWhere(
-        (s) => s['id_entrega'] == entregaId,
-      );
+      final index = _submissions.indexWhere((s) => s['id_entrega'] == entregaId);
       if (index != -1) {
         _submissions[index]['calificacion'] = nota;
         _submissions[index]['comentario_profesor'] = comentario;
         notifyListeners();
       }
     } catch (e) {
-      // Relanzamos el error para que la UI pueda mostrar un SnackBar
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
