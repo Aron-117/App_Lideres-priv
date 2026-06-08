@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/course_model.dart';
-import '../../services/course_service.dart'; // <--  servicio real
+import '../../services/course_service.dart'; 
 
 class CourseProvider extends ChangeNotifier {
   final CourseService _service = CourseService();
@@ -9,17 +9,21 @@ class CourseProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Variables para la gestión de inscritos en un curso específico
+  List<dynamic> _inscripciones = [];
+  bool _isLoadingInscripciones = false;
+
   // Getters para la vista
   List<Course> get courses => _courses;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  
+  List<dynamic> get inscripciones => _inscripciones;
+  bool get isLoadingInscripciones => _isLoadingInscripciones;
 
-  // Método para buscar los datos reales
   Future<void> loadCourses() async {
     _isLoading = true;
     _errorMessage = null;
-    // Retrasamos el notifyListeners usando un microtask para evitar colisiones
-    // al construir la vista inicial en el HomeScreen
     Future.microtask(() => notifyListeners());
 
     try {
@@ -32,12 +36,10 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // --- PUENTES PARA GESTIÓN DE CURSOS ---
-
   Future<bool> createCourse(Map<String, dynamic> data) async {
     try {
       final success = await _service.createCourse(data);
-      if (success) await loadCourses(); // Recarga la lista automáticamente
+      if (success) await loadCourses(); 
       return success;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -73,7 +75,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Carga TODOS los cursos (Solo para la vista de Administrador)
   Future<void> loadAllCourses() async {
     _isLoading = true;
     _errorMessage = null;
@@ -89,36 +90,67 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
+  // --- GESTIÓN DE INSCRIPCIONES ---
+
+  Future<void> loadInscripciones(int courseId) async {
+    _isLoadingInscripciones = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _inscripciones = await _service.fetchCourseInscripciones(courseId);
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      _isLoadingInscripciones = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> inscribirEstudianteEnCurso(int idUsuario, int idCurso) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Llamamos al servicio que acabamos de crear
       final success = await _service.inscribirEstudiante(idUsuario, idCurso);
 
       if (success) {
-        // Opcional: Recargamos los cursos para que el número de cupos
-        // disponibles se actualice visualmente en la pantalla del administrador
+        // Al inscribir con éxito, recargamos la lista de inscritos para que se actualice la ventana
+        await loadInscripciones(idCurso);
         await loadAllCourses();
       }
       return success;
     } catch (e) {
-      // Limpiamos la palabra 'Exception: ' que Dart le pone por defecto a los errores
       _errorMessage = e.toString().replaceAll('Exception: ', '');
-
-      // Manejo de errores de validación de NestJS (class-validator)
-      // A veces NestJS devuelve un array de errores ["El email debe ser válido", etc]
       if (_errorMessage!.startsWith('[')) {
-        _errorMessage =
-            'Error en los datos de inscripción. Revisa la información.';
+        _errorMessage = 'Error en los datos de inscripción. Revisa la información.';
       }
-
       return false;
     } finally {
-      // Siempre detenemos el estado de carga, haya éxito o error
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> desmatricularEstudiante(int idInscripcion, int courseId) async {
+    _isLoadingInscripciones = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _service.deleteInscripcion(idInscripcion);
+      if (success) {
+        // Eliminamos localmente de la lista para no hacer doble recarga
+        _inscripciones.removeWhere((item) => item['id_inscripcion'] == idInscripcion);
+        await loadAllCourses(); // Actualiza cupos en la pantalla principal
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      return false;
+    } finally {
+      _isLoadingInscripciones = false;
       notifyListeners();
     }
   }

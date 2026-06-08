@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/course_model.dart';
 import '../../core/providers/course_provider.dart';
-// ¡NUEVO! Importamos el AdminProvider para poder buscar a los usuarios
 import '../../core/providers/admin_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'course_form_dialog.dart';
@@ -75,13 +74,170 @@ class _CourseManagementTabState extends State<CourseManagementTab> {
   }
 
   // =====================================================================
-  // NUEVO: Modal de Inscripción de Estudiantes
+  // NUEVO 1: Modal Principal de Gestión de Estudiantes Inscritos
   // =====================================================================
+  void _mostrarModalGestionEstudiantes(BuildContext context, Course course) {
+    // Cargamos los inscritos al abrir el modal
+    context.read<CourseProvider>().loadInscripciones(course.id);
 
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext modalContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+            top: 24,
+            left: 20,
+            right: 20,
+          ),
+          child: SizedBox(
+            height: MediaQuery.of(modalContext).size.height * 0.75, // Altura ajustada
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Gestión de Estudiantes',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      onPressed: () => Navigator.pop(modalContext),
+                    )
+                  ],
+                ),
+                Text(
+                  course.title,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+
+                // Botón para inscribir a alguien nuevo
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.person_add_alt_1_rounded),
+                    label: const Text('Inscribir nuevo estudiante', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: () => _mostrarModalInscripcion(modalContext, course.id),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                
+                // Lista de Estudiantes Inscritos
+                const Text(
+                  'Alumnos inscritos en el curso:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Consumer<CourseProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoadingInscripciones) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (provider.inscripciones.isEmpty) {
+                        return const Center(
+                          child: Text('Aún no hay estudiantes inscritos.'),
+                        );
+                      }
+
+                      return ListView.separated(
+                        itemCount: provider.inscripciones.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.black12),
+                        itemBuilder: (context, index) {
+                          final inscripcion = provider.inscripciones[index];
+                          // Asumimos que el backend retorna { id_inscripcion: X, usuario: { id_usuario: Y, nombre: 'Z', email: 'W' } }
+                          final idInscripcion = inscripcion['id_inscripcion'];
+                          final usuario = inscripcion['usuario'] ?? {};
+                          final nombre = usuario['nombre'] ?? 'Desconocido';
+                          final email = usuario['email'] ?? '';
+
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blue.withOpacity(0.1),
+                              child: Text(
+                                nombre[0].toUpperCase(),
+                                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text(email),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.person_remove_rounded, color: AppColors.error),
+                              tooltip: 'Desmatricular',
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: modalContext,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('¿Eliminar del curso?'),
+                                    content: Text('¿Deseas sacar a $nombre de este curso?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text('Eliminar'),
+                                      )
+                                    ],
+                                  )
+                                );
+
+                                if (confirm == true) {
+                                  final success = await provider.desmatricularEstudiante(idInscripcion, course.id);
+                                  if (!success && modalContext.mounted) {
+                                    ScaffoldMessenger.of(modalContext).showSnackBar(
+                                      SnackBar(content: Text(provider.errorMessage ?? 'Error al eliminar'), backgroundColor: AppColors.error),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // =====================================================================
+  // Modal Secundario: Inscribir Estudiante (Con Filtro de ya inscritos)
+  // =====================================================================
   void _mostrarModalInscripcion(BuildContext context, int courseId) {
-    // 1. CAMBIO: Ahora llamamos a fetchStudents() en lugar de fetchUsers()
     context.read<AdminProvider>().fetchStudents();
     final searchController = TextEditingController();
+    
+    // Obtenemos los IDs de los que YA están inscritos para ocultarlos de la lista
+    final currentInscripciones = context.read<CourseProvider>().inscripciones;
+    final enrolledUserIds = currentInscripciones.map((ins) => ins['usuario']?['id_usuario']).toSet();
 
     showModalBottomSheet(
       context: context,
@@ -103,119 +259,75 @@ class _CourseManagementTabState extends State<CourseManagementTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Inscribir Estudiante',
+                'Seleccionar Estudiante',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryDark,
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Buscador
               TextField(
                 controller: searchController,
                 decoration: InputDecoration(
                   hintText: 'Buscar estudiante...',
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: AppColors.textSecondary,
-                  ),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                   filled: true,
                   fillColor: AppColors.backgroundLight,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
-                onChanged: (value) {
-                  // 2. CAMBIO: Usamos el filtro específico de estudiantes
-                  context.read<AdminProvider>().filterStudents(value);
-                },
+                onChanged: (value) => context.read<AdminProvider>().filterStudents(value),
               ),
               const SizedBox(height: 16),
 
-              // Lista de resultados
               SizedBox(
-                height: 350,
+                height: 300,
                 child: Consumer<AdminProvider>(
                   builder: (context, adminProvider, child) {
                     if (adminProvider.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    // 3. CAMBIO: Leemos la lista 'students' en lugar de 'users'
-                    final estudiantes = adminProvider.students;
+                    // Filtramos: Solo estudiantes que NO estén en enrolledUserIds
+                    final estudiantesDisponibles = adminProvider.students.where((s) => !enrolledUserIds.contains(s.id)).toList();
 
-                    if (estudiantes.isEmpty) {
+                    if (estudiantesDisponibles.isEmpty) {
                       return const Center(
-                        child: Text('No se encontraron estudiantes.'),
+                        child: Text('No hay estudiantes disponibles o todos ya están inscritos.'),
                       );
                     }
 
                     return ListView.separated(
-                      itemCount: estudiantes.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(height: 1, color: Colors.black12),
+                      itemCount: estudiantesDisponibles.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.black12),
                       itemBuilder: (context, index) {
-                        final estudiante = estudiantes[index];
+                        final estudiante = estudiantesDisponibles[index];
 
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withOpacity(0.1),
+                            backgroundColor: Colors.green.withOpacity(0.1),
                             child: Text(
                               estudiante.name[0].toUpperCase(),
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          title: Text(
-                            estudiante.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                          title: Text(estudiante.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(estudiante.email),
                           trailing: TextButton(
                             onPressed: () async {
-                              // Cerramos el teclado por si el administrador estaba buscando
                               FocusScope.of(modalContext).unfocus();
-
-                              final success = await context
-                                  .read<CourseProvider>()
-                                  .inscribirEstudianteEnCurso(
-                                    estudiante.id,
-                                    courseId,
-                                  );
+                              final success = await context.read<CourseProvider>().inscribirEstudianteEnCurso(estudiante.id, courseId);
 
                               if (!modalContext.mounted) return;
 
                               if (success) {
-                                // 1. ¡ÉXITO! Cerramos el modal primero
-                                Navigator.pop(modalContext);
-
-                                // 2. Mostramos el mensaje verde usando el "context" de la pantalla principal (no el modalContext)
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('¡Inscrito correctamente!'),
-                                    backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
+                                Navigator.pop(modalContext); // Cierra este modal y vuelve al panel de gestión, el cual se actualizará solo
                               } else {
-                                // 3. ¡ERROR! (ej. Ya estaba inscrito o no hay cupo).
-                                // Dejamos el modal abierto para que vea el error rojo sin perder su búsqueda.
-                                Navigator.pop(modalContext);
                                 ScaffoldMessenger.of(modalContext).showSnackBar(
                                   SnackBar(
-                                    content: Text(
-                                      context
-                                              .read<CourseProvider>()
-                                              .errorMessage ??
-                                          'Error al inscribir',
-                                    ),
+                                    content: Text(context.read<CourseProvider>().errorMessage ?? 'Error al inscribir'),
                                     backgroundColor: AppColors.error,
                                   ),
                                 );
@@ -305,16 +417,15 @@ class _CourseManagementTabState extends State<CourseManagementTab> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // ¡NUEVO! Botón para inscribir
+                        // ¡MODIFICADO! Botón de Gestión de Estudiantes
                         IconButton(
                           icon: const Icon(
-                            Icons.person_add_alt_1_rounded,
-                            color: Colors.green,
-                            size: 20,
+                            Icons.people_alt_rounded,
+                            color: Colors.blue,
+                            size: 22,
                           ),
-                          tooltip: 'Inscribir Alumno',
-                          onPressed: () =>
-                              _mostrarModalInscripcion(context, course.id),
+                          tooltip: 'Gestión de Alumnos',
+                          onPressed: () => _mostrarModalGestionEstudiantes(context, course),
                         ),
                         // Botón Editar
                         IconButton(

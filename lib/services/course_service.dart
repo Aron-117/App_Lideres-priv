@@ -3,12 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants/api_constants.dart';
 import '../core/models/course_model.dart';
-import '../core/models/resource_model.dart'; // Ajustado el path del import
+import '../core/models/resource_model.dart';
 
 class CourseService {
   final _storage = const FlutterSecureStorage();
 
-  // Método 1: Obtener todos los cursos
   Future<List<Course>> fetchCourses() async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) throw Exception('No hay sesión activa.');
@@ -29,12 +28,10 @@ class CourseService {
     }
   }
 
-  // Método exclusivo para el ADMIN: Obtener TODOS los cursos de la plataforma
   Future<List<Course>> fetchAllCourses() async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) throw Exception('No hay sesión activa.');
 
-    // Asumimos que la ruta estándar REST para obtener todos es /curso
     final url = Uri.parse('${ApiConstants.baseUrl}/curso');
     final response = await http.get(
       url,
@@ -52,7 +49,6 @@ class CourseService {
     }
   }
 
-  // Método 2: Obtener recursos de un curso específico
   Future<List<Resource>> fetchCourseResources(int courseId) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/curso/$courseId/recursos');
@@ -74,12 +70,9 @@ class CourseService {
     }
   }
 
-  // Método 3: Crear tarea
-  // Método 3: Crear tarea
   Future<bool> createTask(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/tarea');
-    // Aseguramos que el curso esté vinculado
     data['id_curso'] = courseId;
     
     final response = await http.post(
@@ -94,24 +87,18 @@ class CourseService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     } else {
-      // --- NUEVO: Extraemos el error exacto de NestJS ---
       try {
         final errorData = jsonDecode(response.body);
-        
-        // NestJS a veces envía un array de mensajes si fallan varias validaciones
         if (errorData['message'] is List) {
           throw Exception(errorData['message'].join(', '));
         }
-        
         throw Exception(errorData['message'] ?? 'Error desconocido al crear tarea');
       } catch (e) {
-        // Si no se puede decodificar, mostramos la excepción
         throw Exception(e.toString().replaceAll('Exception: ', ''));
       }
     }
   }
 
-  // Método 4: Crear material
   Future<bool> createMaterial(int courseId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/material');
@@ -125,16 +112,12 @@ class CourseService {
       },
       body: jsonEncode(data),
     );
-    print(response.body);
     return response.statusCode == 200 || response.statusCode == 201;
   }
 
-  // Método 5: Actualizar tarea
   Future<bool> updateTask(int taskId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
-
     final url = Uri.parse('${ApiConstants.baseUrl}/tarea/$taskId');
-
     final response = await http.patch(
       url,
       headers: {
@@ -146,12 +129,9 @@ class CourseService {
     return response.statusCode == 200;
   }
 
-  // Método 6: Actualizar material
   Future<bool> updateMaterial(int materialId, Map<String, dynamic> data) async {
     final token = await _storage.read(key: 'jwt_token');
-
     final url = Uri.parse('${ApiConstants.baseUrl}/material/$materialId');
-
     final response = await http.patch(
       url,
       headers: {
@@ -163,13 +143,11 @@ class CourseService {
     return response.statusCode == 200;
   }
 
-  // Método 7: Eliminar material
   Future<bool> deleteMaterial(int materialId) async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) throw Exception('No hay sesión activa.');
 
     final url = Uri.parse('${ApiConstants.baseUrl}/material/$materialId');
-
     final response = await http.delete(
       url,
       headers: {
@@ -183,9 +161,7 @@ class CourseService {
         final data = jsonDecode(response.body);
         throw Exception(data['message'] ?? 'Error al eliminar el material.');
       } catch (_) {
-        throw Exception(
-          'Error del servidor al eliminar el material (${response.statusCode}).',
-        );
+        throw Exception('Error del servidor al eliminar el material (${response.statusCode}).');
       }
     }
     return true;
@@ -236,32 +212,64 @@ class CourseService {
     final token = await _storage.read(key: 'jwt_token');
     final url = Uri.parse('${ApiConstants.baseUrl}/inscripcion');
 
-    try {
-      final response = await http.post(
-        url,
-        // _getHeaders() o el método que uses para inyectar el Token (Bearer)
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'id_usuario': idUsuario,
-          'id_curso': idCurso,
-          'estado': 'ACTIVO', // Estado por defecto, según tu backend
-        }),
-      );
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'id_usuario': idUsuario,
+        'id_curso': idCurso,
+        'estado': 'ACTIVO', 
+      }),
+    );
 
-      if (response.statusCode == 201) {
-        return true;
-      } else {
-        final body = jsonDecode(response.body);
-        final errorMessage =
-            body['message'] ?? 'Error desconocido al inscribir';
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Error desconocido al inscribir');
+    }
+  }
 
-        throw Exception(errorMessage);
-      }
-    } catch (e) {
-      rethrow;
+  // --- NUEVAS FUNCIONALIDADES PARA GESTIÓN DE INSCRITOS ---
+
+  Future<List<dynamic>> fetchCourseInscripciones(int courseId) async {
+    final token = await _storage.read(key: 'jwt_token');
+    if (token == null) throw Exception('No hay sesión activa.');
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/curso/$courseId/inscripciones');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error al cargar la lista de estudiantes inscritos.');
+    }
+  }
+
+  Future<bool> deleteInscripcion(int idInscripcion) async {
+    final token = await _storage.read(key: 'jwt_token');
+    final url = Uri.parse('${ApiConstants.baseUrl}/inscripcion/$idInscripcion');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return true;
+    } else {
+      throw Exception('Error al eliminar la inscripción.');
     }
   }
 }
