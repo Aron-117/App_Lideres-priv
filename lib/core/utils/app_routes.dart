@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // Las pantallas
 import '../../features/auth/login_screen.dart';
 import '../../features/home/home_screen.dart';
-import '../../features/courses/pendientes_sreen.dart';
+import '../../features/courses/pendientes_screen.dart';
 import '../../features/courses/class_detail_screen.dart';
 import '../../features/admin/admin_screen.dart';
 import '../../features/courses/task_detail_screen.dart';

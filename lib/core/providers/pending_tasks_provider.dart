@@ -25,15 +25,14 @@ class PendingTasksProvider extends ChangeNotifier {
       sinFecha.clear();
       estaSemana.clear();
       anteriores.clear();
-
       // Separamos las tareas por fecha
       for (var task in allTasks) {
-        if (task.dueDate == null) {
-          sinFecha.add(task);
-        } else if (task.dueDate!.isBefore(now)) {
+        if (DateTime.parse(task.fechaEntrega).isBefore(now)) {
           anteriores.add(task); // Ya vencieron
         } else {
-          estaSemana.add(task); // Aún hay tiempo (simplificado como "esta semana")
+          estaSemana.add(
+            task,
+          ); // Aún hay tiempo (simplificado como "esta semana")
         }
       }
     } catch (e) {

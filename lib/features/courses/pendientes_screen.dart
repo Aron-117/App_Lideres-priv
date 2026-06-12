@@ -9,7 +9,6 @@ import '../../core/widgets/smart_refresh_wrapper.dart';
 
 class PendientesScreen extends StatelessWidget {
   const PendientesScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     // Forzamos la carga al abrir la pantalla
@@ -41,10 +40,16 @@ class PendientesScreen extends StatelessWidget {
               centerTitle: true,
             ),
             body: SmartRefreshWrapper(
-              onRefresh: () => provider.loadTasks(),
+              onRefresh: () {
+                return provider.loadTasks();
+              },
               isLoading: provider.isLoading,
               errorMessage: provider.errorMessage,
-              isEmpty: provider.sinFecha.isEmpty && provider.estaSemana.isEmpty && provider.anteriores.isEmpty,
+              isEmpty:
+                  (provider.sinFecha.isEmpty &&
+                      provider.estaSemana.isEmpty &&
+                      provider.anteriores.isEmpty) ||
+                  provider.errorMessage != null,
               emptyMessage: 'No tienes tareas pendientes.',
               onRetry: () => provider.loadTasks(),
               child: ListView(
@@ -61,22 +66,21 @@ class PendientesScreen extends StatelessWidget {
                     tasks: provider.sinFecha
                         .map(
                           (t) => TaskListTile(
-                            title: t.title,
-                            description: t.courseName,
+                            title: t.titulo,
+                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
-                                id: t.id,
-                                title: t.title,
-                                description: t.description,
-                                dueDate: t.dueDate,
+                                id: t.idTarea,
+                                title: t.titulo,
+                                description: t.descripcion,
+                                dueDate: DateTime.parse(t.fechaPublicacion),
                                 type: 'tarea',
                               );
                               final updatedTask =
                                   await Navigator.push<Resource>(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const TaskDetailScreen(),
+                                      builder: (_) => const TaskDetailScreen(),
                                       settings: RouteSettings(
                                         arguments: resource,
                                       ),
@@ -100,22 +104,21 @@ class PendientesScreen extends StatelessWidget {
                     tasks: provider.estaSemana
                         .map(
                           (t) => TaskListTile(
-                            title: t.title,
-                            description: t.courseName,
+                            title: t.titulo,
+                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
-                                id: t.id,
-                                title: t.title,
-                                description: t.description,
-                                dueDate: t.dueDate,
+                                id: t.idTarea,
+                                title: t.titulo,
+                                description: t.descripcion,
+                                dueDate: DateTime.parse(t.fechaPublicacion),
                                 type: 'tarea',
                               );
                               final updatedTask =
                                   await Navigator.push<Resource>(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const TaskDetailScreen(),
+                                      builder: (_) => const TaskDetailScreen(),
                                       settings: RouteSettings(
                                         arguments: resource,
                                       ),
@@ -139,22 +142,21 @@ class PendientesScreen extends StatelessWidget {
                     tasks: provider.anteriores
                         .map(
                           (t) => TaskListTile(
-                            title: t.title,
-                            description: t.courseName,
+                            title: t.titulo,
+                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
-                                id: t.id,
-                                title: t.title,
-                                description: t.description,
-                                dueDate: t.dueDate,
+                                id: t.idTarea,
+                                title: t.titulo,
+                                description: t.descripcion,
+                                dueDate: DateTime.parse(t.fechaEntrega),
                                 type: 'tarea',
                               );
                               final updatedTask =
                                   await Navigator.push<Resource>(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const TaskDetailScreen(),
+                                      builder: (_) => const TaskDetailScreen(),
                                       settings: RouteSettings(
                                         arguments: resource,
                                       ),
