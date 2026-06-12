@@ -115,15 +115,15 @@ class _SubmissionsListScreenState extends State<SubmissionsListScreen> {
                 ),
               );
             }
-
-            return RefreshIndicator(
+ return RefreshIndicator(
               onRefresh: () => provider.fetchSubmissions(widget.task.id),
               child: ListView.builder(
                 padding: const EdgeInsets.all(20.0),
                 itemCount: provider.submissions.length,
                 itemBuilder: (context, index) {
                   final entrega = provider.submissions[index];
-                  return SubmissionCardWidget(
+
+                             return SubmissionCardWidget(
                     entrega: entrega,
                     maxScore: widget.task.maxScore ?? 100,
                     onTapGrade: () => _openGradingDialog(entrega, provider),

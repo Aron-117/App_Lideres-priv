@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/task_list_tile.dart';
 import '../../core/providers/pending_tasks_provider.dart';
+import '../../core/widgets/smart_refresh_wrapper.dart';
 
 class PendientesScreen extends StatelessWidget {
   const PendientesScreen({super.key});
@@ -39,139 +40,139 @@ class PendientesScreen extends StatelessWidget {
               ),
               centerTitle: true,
             ),
-            body: provider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : provider.errorMessage != null
-                ? Center(
-                    child: Text(
-                      provider.errorMessage!,
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    children: [
-                      _buildExpansionSection(
-                        context,
-                        title: 'Sin fecha limite',
-                        count: provider.sinFecha.length,
-                        tasks: provider.sinFecha
-                            .map(
-                              (t) => TaskListTile(
+            body: SmartRefreshWrapper(
+              onRefresh: () => provider.loadTasks(),
+              isLoading: provider.isLoading,
+              errorMessage: provider.errorMessage,
+              isEmpty: provider.sinFecha.isEmpty && provider.estaSemana.isEmpty && provider.anteriores.isEmpty,
+              emptyMessage: 'No tienes tareas pendientes.',
+              onRetry: () => provider.loadTasks(),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                children: [
+                  _buildExpansionSection(
+                    context,
+                    title: 'Sin fecha limite',
+                    count: provider.sinFecha.length,
+                    tasks: provider.sinFecha
+                        .map(
+                          (t) => TaskListTile(
+                            title: t.title,
+                            description: t.courseName,
+                            onTap: () async {
+                              final resource = Resource(
+                                id: t.id,
                                 title: t.title,
-                                description: t.courseName,
-                                onTap: () async {
-                                  final resource = Resource(
-                                    id: t.id,
-                                    title: t.title,
-                                    description: t.description,
-                                    dueDate: t.dueDate,
-                                    type: 'tarea',
+                                description: t.description,
+                                dueDate: t.dueDate,
+                                type: 'tarea',
+                              );
+                              final updatedTask =
+                                  await Navigator.push<Resource>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const TaskDetailScreen(),
+                                      settings: RouteSettings(
+                                        arguments: resource,
+                                      ),
+                                    ),
                                   );
-                                  final updatedTask =
-                                      await Navigator.push<Resource>(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const TaskDetailScreen(),
-                                          settings: RouteSettings(
-                                            arguments: resource,
-                                          ),
-                                        ),
-                                      );
-                                  if (updatedTask != null && context.mounted) {
-                                    context
-                                        .read<PendingTasksProvider>()
-                                        .loadTasks();
-                                  }
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildExpansionSection(
-                        context,
-                        title: 'Próximas',
-                        count: provider.estaSemana.length,
-                        tasks: provider.estaSemana
-                            .map(
-                              (t) => TaskListTile(
-                                title: t.title,
-                                description: t.courseName,
-                                onTap: () async {
-                                  final resource = Resource(
-                                    id: t.id,
-                                    title: t.title,
-                                    description: t.description,
-                                    dueDate: t.dueDate,
-                                    type: 'tarea',
-                                  );
-                                  final updatedTask =
-                                      await Navigator.push<Resource>(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const TaskDetailScreen(),
-                                          settings: RouteSettings(
-                                            arguments: resource,
-                                          ),
-                                        ),
-                                      );
-                                  if (updatedTask != null && context.mounted) {
-                                    context
-                                        .read<PendingTasksProvider>()
-                                        .loadTasks();
-                                  }
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildExpansionSection(
-                        context,
-                        title: 'Anteriores (Vencidas)',
-                        count: provider.anteriores.length,
-                        tasks: provider.anteriores
-                            .map(
-                              (t) => TaskListTile(
-                                title: t.title,
-                                description: t.courseName,
-                                onTap: () async {
-                                  final resource = Resource(
-                                    id: t.id,
-                                    title: t.title,
-                                    description: t.description,
-                                    dueDate: t.dueDate,
-                                    type: 'tarea',
-                                  );
-                                  final updatedTask =
-                                      await Navigator.push<Resource>(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const TaskDetailScreen(),
-                                          settings: RouteSettings(
-                                            arguments: resource,
-                                          ),
-                                        ),
-                                      );
-                                  if (updatedTask != null && context.mounted) {
-                                    context
-                                        .read<PendingTasksProvider>()
-                                        .loadTasks();
-                                  }
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ],
+                              if (updatedTask != null && context.mounted) {
+                                context
+                                    .read<PendingTasksProvider>()
+                                    .loadTasks();
+                              }
+                            },
+                          ),
+                        )
+                        .toList(),
                   ),
+                  const SizedBox(height: 12),
+                  _buildExpansionSection(
+                    context,
+                    title: 'Próximas',
+                    count: provider.estaSemana.length,
+                    tasks: provider.estaSemana
+                        .map(
+                          (t) => TaskListTile(
+                            title: t.title,
+                            description: t.courseName,
+                            onTap: () async {
+                              final resource = Resource(
+                                id: t.id,
+                                title: t.title,
+                                description: t.description,
+                                dueDate: t.dueDate,
+                                type: 'tarea',
+                              );
+                              final updatedTask =
+                                  await Navigator.push<Resource>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const TaskDetailScreen(),
+                                      settings: RouteSettings(
+                                        arguments: resource,
+                                      ),
+                                    ),
+                                  );
+                              if (updatedTask != null && context.mounted) {
+                                context
+                                    .read<PendingTasksProvider>()
+                                    .loadTasks();
+                              }
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildExpansionSection(
+                    context,
+                    title: 'Anteriores (Vencidas)',
+                    count: provider.anteriores.length,
+                    tasks: provider.anteriores
+                        .map(
+                          (t) => TaskListTile(
+                            title: t.title,
+                            description: t.courseName,
+                            onTap: () async {
+                              final resource = Resource(
+                                id: t.id,
+                                title: t.title,
+                                description: t.description,
+                                dueDate: t.dueDate,
+                                type: 'tarea',
+                              );
+                              final updatedTask =
+                                  await Navigator.push<Resource>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const TaskDetailScreen(),
+                                      settings: RouteSettings(
+                                        arguments: resource,
+                                      ),
+                                    ),
+                                  );
+                              if (updatedTask != null && context.mounted) {
+                                context
+                                    .read<PendingTasksProvider>()
+                                    .loadTasks();
+                              }
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
           );
         },
       ),

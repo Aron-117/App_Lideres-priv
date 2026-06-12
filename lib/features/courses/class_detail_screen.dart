@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/task_list_tile.dart';
+import '../../core/widgets/smart_refresh_wrapper.dart';
 import '../../core/utils/user_roles.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/resource_provider.dart';
@@ -69,155 +70,154 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-            body: provider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    children: [
-                      Container(
-                        height: 160,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: AppColors.primaryDark,
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/logo.png'),
-                            fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(
-                              Colors.black45,
-                              BlendMode.darken,
-                            ),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Detalles de Clase',
-                              style: Theme.of(context).textTheme.displayLarge
-                                  ?.copyWith(
-                                    fontSize: 26,
-                                    color: AppColors.surfaceWhite,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
+            body: SmartRefreshWrapper(
+              onRefresh: () => provider.loadCourse(courseId),
+              isLoading: provider.isLoading,
+              errorMessage: provider.errorMessage,
+              isEmpty: false, // La pantalla nunca debe mostrarse vacía completamente porque tiene un encabezado.
+              onRetry: () => provider.loadCourse(courseId),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                children: [
+                  Container(
+                    height: 160,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.primaryDark,
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/logo.png'),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black45,
+                          BlendMode.darken,
                         ),
                       ),
-
-                      const SizedBox(height: 24),
-
-                      if (currentUserRole.canEditCourses) ...[
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.surfaceWhite,
-                            foregroundColor: AppColors.primaryDark,
-                            elevation: 0,
-                            side: BorderSide(
-                              color: AppColors.secondary.withOpacity(0.3),
-                              width: 1.5,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () =>
-                              _showCreateOptions(context, courseId, provider),
-                          icon: const Icon(
-                            Icons.add_circle_outline_rounded,
-                            size: 20,
-                          ),
-                          label: const Text(
-                            'Nuevo anuncio',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        const SizedBox(height: 24),
                       ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Detalles de Clase',
+                          style: Theme.of(context).textTheme.displayLarge
+                              ?.copyWith(
+                                fontSize: 26,
+                                color: AppColors.surfaceWhite,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      const Text(
-                        'Trabajo de clase',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryDark,
+                  const SizedBox(height: 24),
+
+                  if (currentUserRole.canEditCourses) ...[
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surfaceWhite,
+                        foregroundColor: AppColors.primaryDark,
+                        elevation: 0,
+                        side: BorderSide(
+                          color: AppColors.secondary.withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
-                      if (provider.errorMessage != null)
-                        Center(
-                          child: Text(
-                            provider.errorMessage!,
-                            style: const TextStyle(color: AppColors.error),
-                          ),
-                        )
-                      else if (provider.resources.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Text(
-                              'El profesor aún no ha subido tareas ni materiales.',
-                              style: TextStyle(color: AppColors.textSecondary),
-                            ),
-                          ),
-                        )
-                      else
-                        ...provider.resources.map(
-                          (res) => TaskListTile(
-                            title: res.title,
-                            tipo: res.type,
-                            description:
-                                res.description ??
-                                (res.type == 'tarea'
-                                    ? 'Tarea asignada'
-                                    : 'Material de estudio'),
-                            onTap: () async {
-                              dynamic result;
-
-                              if (res.type == 'tarea') {
-                                result = await Navigator.push<dynamic>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const TaskDetailScreen(),
-                                    settings: RouteSettings(arguments: res),
-                                  ),
-                                );
-                              } else if (res.type == 'material') {
-                                result = await Navigator.push<dynamic>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const MaterialDetailScreen(),
-                                    settings: RouteSettings(arguments: res),
-                                  ),
-                                );
-                              }
-
-                              if (result != null && context.mounted) {
-                                await provider.loadCourse(courseId);
-                              }
-                            },
-                          ),
+                      onPressed: () =>
+                          _showCreateOptions(context, courseId, provider),
+                      icon: const Icon(
+                        Icons.add_circle_outline_rounded,
+                        size: 20,
+                      ),
+                      label: const Text(
+                        'Nuevo anuncio',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
-                    ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  const Text(
+                    'Trabajo de clase',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryDark,
+                    ),
                   ),
+
+                  const SizedBox(height: 12),
+
+                  if (provider.resources.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          'El profesor aún no ha subido tareas ni materiales.',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    )
+                  else
+                    ...provider.resources.map(
+                      (res) => TaskListTile(
+                        title: res.title,
+                        tipo: res.type,
+                        description:
+                            res.description ??
+                            (res.type == 'tarea'
+                                ? 'Tarea asignada'
+                                : 'Material de estudio'),
+                        onTap: () async {
+                          dynamic result;
+
+                          if (res.type == 'tarea') {
+                            result = await Navigator.push<dynamic>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const TaskDetailScreen(),
+                                settings: RouteSettings(arguments: res),
+                              ),
+                            );
+                          } else if (res.type == 'material') {
+                            result = await Navigator.push<dynamic>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const MaterialDetailScreen(),
+                                settings: RouteSettings(arguments: res),
+                              ),
+                            );
+                          }
+
+                          if (result != null && context.mounted) {
+                            await provider.loadCourse(courseId);
+                          }
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           );
         },
       ),

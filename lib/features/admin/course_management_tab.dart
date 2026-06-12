@@ -4,6 +4,7 @@ import '../../core/models/course_model.dart';
 import '../../core/providers/course_provider.dart';
 import '../../core/providers/admin_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/smart_refresh_wrapper.dart';
 import 'course_form_dialog.dart';
 
 class CourseManagementTab extends StatefulWidget {
@@ -362,18 +363,18 @@ class _CourseManagementTabState extends State<CourseManagementTab> {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Nuevo Curso', style: TextStyle(color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Consumer<CourseProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (provider.courses.isEmpty) {
-              return const Center(child: Text('No hay cursos registrados.'));
-            }
-
-            return ListView.separated(
+      body: Consumer<CourseProvider>(
+        builder: (context, provider, child) {
+          return SmartRefreshWrapper(
+            onRefresh: () => provider.loadAllCourses(),
+            isLoading: provider.isLoading,
+            errorMessage: provider.errorMessage,
+            isEmpty: provider.courses.isEmpty,
+            emptyMessage: 'No hay cursos registrados.',
+            onRetry: () => provider.loadAllCourses(),
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20.0),
               itemCount: provider.courses.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
@@ -452,9 +453,9 @@ class _CourseManagementTabState extends State<CourseManagementTab> {
                   ),
                 );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

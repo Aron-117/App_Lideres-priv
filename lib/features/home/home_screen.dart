@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/course_card.dart';
 import '../../core/providers/course_provider.dart';
 import '../../core/utils/app_routes.dart';
+import '../../core/widgets/smart_refresh_wrapper.dart';
 import '../../core/widgets/custom_drawer.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/utils/user_roles.dart';
@@ -98,49 +99,33 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Consumer<CourseProvider>(
                   builder: (context, provider, child) {
-                    if (provider.isLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      );
-                    }
-
-                    if (provider.courses.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No tienes materias asignadas.',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      );
-                    }
-                    if (provider.errorMessage != null) {
-                      return Center(
-                        child: Text('Error: ${provider.errorMessage}'),
-                      );
-                    }
-
-                    return ListView.builder(
-                      itemCount: provider.courses.length,
-                      // ALTERACIÓN 5: Añadimos un pequeño espacio (padding) extra al final de la lista
-                      // para que la última tarjeta no quede pegada al borde inferior de la pantalla.
-                      padding: const EdgeInsets.only(bottom: 24.0),
-                      itemBuilder: (context, index) {
-                        final course = provider.courses[index];
-                        return CourseCard(
-                          title: course.title,
-                          description: course.description,
-                          // ALTERACIÓN 6: Agregamos el parámetro imagePath que tu CourseCard ahora exige.
-                          imagePath: 'assets/images/banner3.png',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.classDetail,
-                              arguments: course.id, // Pasamos el ID real
-                            );
-                          },
-                        );
-                      },
+                    return SmartRefreshWrapper(
+                      onRefresh: () => provider.loadCourses(),
+                      isLoading: provider.isLoading,
+                      errorMessage: provider.errorMessage,
+                      isEmpty: provider.courses.isEmpty,
+                      emptyMessage: 'No tienes materias asignadas.',
+                      onRetry: () => provider.loadCourses(),
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: provider.courses.length,
+                        padding: const EdgeInsets.only(bottom: 24.0),
+                        itemBuilder: (context, index) {
+                          final course = provider.courses[index];
+                          return CourseCard(
+                            title: course.title,
+                            description: course.description,
+                            imagePath: 'assets/images/banner3.png',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.classDetail,
+                                arguments: course.id,
+                              );
+                            },
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
