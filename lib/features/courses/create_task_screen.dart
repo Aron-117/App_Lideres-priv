@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/providers/resource_provider.dart';
+import '../../core/widgets/informative_form_card.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final int? courseId;
@@ -272,33 +273,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
               const SizedBox(height: 20),
 
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.secondary.withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      isEditing ? Icons.edit_rounded : Icons.assignment_rounded,
-                      color: AppColors.primary,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      isEditing
-                          ? 'Estás modificando una tarea existente.'
-                          : 'Completa la información para publicar la tarea.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
+              InformativeFormCard(
+                icon: isEditing ? Icons.edit_rounded : Icons.assignment_rounded,
+                text: isEditing
+                    ? 'Estás modificando una tarea existente.'
+                    : 'Completa la información para publicar la tarea.',
               ),
 
               const SizedBox(height: 32),

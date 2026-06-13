@@ -9,9 +9,9 @@ import '../../core/utils/user_roles.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/resource_provider.dart';
 
-import 'create_task_screen.dart';
-import 'create_material_screen.dart';
 import 'material_detail_screen.dart';
+import 'widgets/class_detail/class_header_widget.dart';
+import 'widgets/class_detail/create_options_bottom_sheet.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   const ClassDetailScreen({super.key});
@@ -83,44 +83,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                   vertical: 10,
                 ),
                 children: [
-                  Container(
-                    height: 160,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: AppColors.primaryDark,
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/logo.png'),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black45,
-                          BlendMode.darken,
-                        ),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Detalles de Clase',
-                          style: Theme.of(context).textTheme.displayLarge
-                              ?.copyWith(
-                                fontSize: 26,
-                                color: AppColors.surfaceWhite,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const ClassHeaderWidget(),
 
                   const SizedBox(height: 24),
 
@@ -140,7 +103,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                         ),
                       ),
                       onPressed: () =>
-                          _showCreateOptions(context, courseId, provider),
+                          CreateOptionsBottomSheet.show(context, courseId, provider),
                       icon: const Icon(
                         Icons.add_circle_outline_rounded,
                         size: 20,
@@ -224,95 +187,5 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     );
   }
 
-  void _showCreateOptions(
-    BuildContext context,
-    int courseId,
-    ResourceProvider provider,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: AppColors.surfaceWhite,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.backgroundLight,
-                  child: Icon(
-                    Icons.assignment_rounded,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                title: const Text(
-                  'Crear Tarea',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('Asignar un trabajo con fecha de entrega'),
-                onTap: () {
-                  Navigator.pop(context);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChangeNotifierProvider.value(
-                        value: provider,
-                        child: CreateTaskScreen(courseId: courseId),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.backgroundLight,
-                  child: Icon(
-                    Icons.menu_book_rounded,
-                    color: AppColors.primary,
-                  ),
-                ),
-                title: const Text(
-                  'Subir Material',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('Compartir documentos, videos o enlaces'),
-                onTap: () {
-                  Navigator.pop(context);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChangeNotifierProvider.value(
-                        value: provider,
-                        child: CreateMaterialScreen(courseId: courseId),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 10),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // (El BottomSheet de creación fue movido a CreateOptionsBottomSheet)
 }
