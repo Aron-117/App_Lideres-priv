@@ -3,13 +3,11 @@ import '../theme/app_colors.dart';
 
 class TaskListTile extends StatelessWidget {
   final String title;
-  final String description;
   final VoidCallback? onTap;
   final String tipo;
   const TaskListTile({
     super.key,
     required this.title,
-    required this.description,
     this.tipo = 'tarea',
     this.onTap,
   });
@@ -50,6 +48,10 @@ class TaskListTile extends StatelessWidget {
             Expanded(
               child: ListTile(
                 // ALTERACIÓN 4: Ícono más moderno y sutil
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -71,15 +73,6 @@ class TaskListTile extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryDark,
                   ),
-                ),
-                subtitle: Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 trailing: const Icon(
                   Icons.arrow_forward_ios_rounded,

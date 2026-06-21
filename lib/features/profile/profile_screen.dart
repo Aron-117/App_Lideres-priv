@@ -1,3 +1,4 @@
+import 'package:app_lideres/core/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -101,6 +102,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  const AppVersionText(),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -109,5 +112,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
 }

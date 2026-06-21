@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:file_picker/file_picker.dart';
@@ -7,6 +8,7 @@ import '../core/constants/api_constants.dart';
 
 class ResourceFileService {
   final _storage = const FlutterSecureStorage();
+  final Dio _dio = Dio();
 
   // apiPath será 'archivo-material' o 'archivo-tarea'
 
@@ -34,37 +36,36 @@ class ResourceFileService {
   Future<bool> uploadFile(
     int resourceId,
     PlatformFile file,
-    String apiPath,
-  ) async {
+    String apiPath, {
+    ProgressCallback? onSendProgress,
+    CancelToken? cancelToken,
+  }) async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) throw Exception('No hay sesión activa.');
 
     final url = Uri.parse('${ApiConstants.baseUrl}/$apiPath');
     final tipo = (apiPath == "archivo-material") ? "id_material" : "id_tarea";
-    var request = http.MultipartRequest('POST', url);
-    request.headers.addAll({'Authorization': 'Bearer $token'});
-    // Asumiendo que tu backend espera 'id_recurso' (ajusta si espera id_material o id_tarea)
-    request.fields[tipo] = resourceId.toString();
+    final formData = FormData.fromMap({
+      tipo: resourceId.toString(),
+      'file': kIsWeb
+          ? MultipartFile.fromBytes(file.bytes!, filename: file.name)
+          : await MultipartFile.fromFile(file.path!, filename: file.name),
+    });
 
-    http.MultipartFile multipartFile;
-    if (kIsWeb) {
-      multipartFile = http.MultipartFile.fromBytes(
-        'file',
-        file.bytes!,
-        filename: file.name,
-      );
-    } else {
-      multipartFile = await http.MultipartFile.fromPath(
-        'file',
-        file.path!,
-        filename: file.name,
-      );
-    }
+    final response = await _dio.postUri(
+      url,
+      data: formData,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'multipart/form-data',
+        },
+      ),
+      onSendProgress: onSendProgress,
+      cancelToken: cancelToken,
+    );
 
-    request.files.add(multipartFile);
-    var streamedResponse = await request.send();
-    if (streamedResponse.statusCode == 200 ||
-        streamedResponse.statusCode == 201) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     } else {
       throw Exception('Error al subir el archivo adjunto.');

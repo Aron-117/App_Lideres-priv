@@ -35,9 +35,9 @@ class StudentWorkspaceWidget extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        /// Tarjeta de Carga / Selección de Archivo
+        /// Tarjeta Flexible (Se eliminó el height: 300 rígido)
         Container(
-          height: 140,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
             color: AppColors.surfaceWhite,
             borderRadius: BorderRadius.circular(16),
@@ -47,57 +47,155 @@ class StudentWorkspaceWidget extends StatelessWidget {
             ),
           ),
           child: InkWell(
+            // El trigger de selección se desactiva solo si está subiendo
             onTap: provider.isUploading ? null : () => provider.pickFile(),
             borderRadius: BorderRadius.circular(16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (provider.selectedFile != null) ...[
+                if (provider.selectedFiles.isNotEmpty) ...[
                   const Icon(
                     Icons.insert_drive_file,
                     size: 32,
                     color: AppColors.primaryDark,
                   ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      provider.selectedFile!.name,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryDark,
+                  const SizedBox(height: 12),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: provider.selectedFiles.length,
+                    itemBuilder: (context, index) {
+                      final file = provider.selectedFiles[index];
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundLight.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.attach_file,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                file.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryDark,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: AppColors.error,
+                              ),
+                              onPressed: provider.isUploading
+                                  ? null
+                                  : () => provider.removeSelectedFile(index),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${provider.selectedFiles.length} archivo(s) seleccionado(s)',
+                        style: const TextStyle(
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        onPressed: provider.isUploading
+                            ? null
+                            : () => provider.clearFiles(),
+                        child: const Text(
+                          'Limpiar todo',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: provider.isUploading ? null : () => provider.clearFile(),
-                    child: const Text(
-                      "Quitar archivo",
-                      style: TextStyle(color: AppColors.error),
+                  if (provider.isUploading &&
+                      provider.uploadingFileName != null) ...[
+                    const Divider(height: 24),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Subiendo ${provider.uploadingFileName}: ${provider.uploadProgress}%',
+                          style: const TextStyle(
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: provider.uploadProgress / 100,
+                          backgroundColor: AppColors.backgroundLight,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: provider.isUploading
+                                  ? () => provider.cancelUpload()
+                                  : null,
+                              child: const Text(
+                                'Cancelar subida',
+                                style: TextStyle(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(
-                      color: AppColors.backgroundLight,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.cloud_upload_outlined,
-                      size: 32,
-                      color: AppColors.primary,
-                    ),
+                  const Icon(
+                    Icons.cloud_upload_outlined,
+                    size: 36,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Toca para subir un archivo',
+                    'Toca para seleccionar archivos',
                     style: TextStyle(
                       color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
                 ],
@@ -130,10 +228,7 @@ class StudentWorkspaceWidget extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
                     backgroundColor: AppColors.error,
-                    side: const BorderSide(
-                      color: AppColors.error,
-                      width: 1.5,
-                    ),
+                    side: const BorderSide(color: AppColors.error, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -162,7 +257,9 @@ class StudentWorkspaceWidget extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: provider.isSuccess ? Colors.green : AppColors.primaryDark,
+                  backgroundColor: provider.isSuccess
+                      ? Colors.green
+                      : AppColors.primaryDark,
                   foregroundColor: AppColors.surfaceWhite,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -172,7 +269,8 @@ class StudentWorkspaceWidget extends StatelessWidget {
                 onPressed: provider.isUploading
                     ? null
                     : () async {
-                        if (provider.selectedFile == null && !provider.alreadySubmitted) {
+                        if (provider.selectedFiles.isEmpty &&
+                            !provider.alreadySubmitted) {
                           final confirm = await onSubmitWithoutFilePrompt();
                           if (confirm != true) return;
                         }
@@ -188,7 +286,9 @@ class StudentWorkspaceWidget extends StatelessWidget {
                         ),
                       )
                     : Text(
-                        provider.alreadySubmitted ? 'Reentregar tarea' : 'Entregar tarea',
+                        provider.alreadySubmitted
+                            ? 'Reentregar tarea'
+                            : 'Entregar tarea',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -200,7 +300,7 @@ class StudentWorkspaceWidget extends StatelessWidget {
         ),
         const SizedBox(height: 32),
 
-        /// Lista de Archivos Cargados de la Entrega
+        /// Lista de Archivos Cargados de la Entrega (Persistidos en la BD)
         if (provider.alreadySubmitted) ...[
           const Text(
             'Archivos entregados',
@@ -214,9 +314,7 @@ class StudentWorkspaceWidget extends StatelessWidget {
           if (provider.submissionFiles.isEmpty)
             const Text(
               'Entregado sin archivos adjuntos',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(color: AppColors.textSecondary),
             )
           else
             ...provider.submissionFiles.map(
@@ -246,10 +344,7 @@ class StudentWorkspaceWidget extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
-                        Icons.download_rounded,
-                        size: 20,
-                      ),
+                      icon: const Icon(Icons.download_rounded, size: 20),
                       onPressed: () async {
                         final url = file['url'];
                         if (url == null) return;

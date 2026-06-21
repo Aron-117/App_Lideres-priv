@@ -74,7 +74,8 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
               onRefresh: () => provider.loadCourse(courseId),
               isLoading: provider.isLoading,
               errorMessage: provider.errorMessage,
-              isEmpty: false, // La pantalla nunca debe mostrarse vacía completamente porque tiene un encabezado.
+              isEmpty:
+                  false, // La pantalla nunca debe mostrarse vacía completamente porque tiene un encabezado.
               onRetry: () => provider.loadCourse(courseId),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -102,8 +103,11 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () =>
-                          CreateOptionsBottomSheet.show(context, courseId, provider),
+                      onPressed: () => CreateOptionsBottomSheet.show(
+                        context,
+                        courseId,
+                        provider,
+                      ),
                       icon: const Icon(
                         Icons.add_circle_outline_rounded,
                         size: 20,
@@ -145,11 +149,6 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                       (res) => TaskListTile(
                         title: res.title,
                         tipo: res.type,
-                        description:
-                            res.description ??
-                            (res.type == 'tarea'
-                                ? 'Tarea asignada'
-                                : 'Material de estudio'),
                         onTap: () async {
                           dynamic result;
 
@@ -165,8 +164,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                             result = await Navigator.push<dynamic>(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    const MaterialDetailScreen(),
+                                builder: (_) => const MaterialDetailScreen(),
                                 settings: RouteSettings(arguments: res),
                               ),
                             );

@@ -1,3 +1,4 @@
+import 'package:app_lideres/core/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -192,6 +193,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  const AppVersionText(),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

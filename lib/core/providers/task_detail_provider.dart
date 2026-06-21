@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/task_service.dart';
 
 class TaskDetailProvider extends ChangeNotifier {
   final TaskService _service = TaskService();
 
-  PlatformFile? _selectedFile;
+  final List<PlatformFile> _selectedFiles = [];
   bool _isUploading = false;
+  String? _uploadingFileName;
+  int _uploadProgress = 0;
+  CancelToken? _uploadCancelToken;
   String? _message;
   bool _isSuccess = false;
   bool _alreadySubmitted = false;
@@ -21,8 +25,10 @@ class TaskDetailProvider extends ChangeNotifier {
 
   // Getters
   bool get alreadySubmitted => _alreadySubmitted;
-  PlatformFile? get selectedFile => _selectedFile;
+  List<PlatformFile> get selectedFiles => List.unmodifiable(_selectedFiles);
   bool get isUploading => _isUploading;
+  String? get uploadingFileName => _uploadingFileName;
+  int get uploadProgress => _uploadProgress;
   String? get message => _message;
   bool get isSuccess => _isSuccess;
   Map<String, dynamic>? get submissionData => _submissionData;
@@ -35,6 +41,12 @@ class TaskDetailProvider extends ChangeNotifier {
       final result = await _service.getSubmissionStatus(tareaId);
       _alreadySubmitted = result['entregado'] ?? false;
       _submissionData = result;
+
+      // Si ya existe una entrega registrada, limpiamos la selección local
+      // para que la caja de subida quede vacía después de enviar.
+      if (_alreadySubmitted && _selectedFiles.isNotEmpty) {
+        _selectedFiles.clear();
+      }
 
       // NUEVO: Extraemos la calificación y el comentario si la tarea ya fue entregada
       if (_alreadySubmitted && result['entrega'] != null) {
@@ -57,46 +69,95 @@ class TaskDetailProvider extends ChangeNotifier {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png'],
+      allowMultiple: true,
       withData: true,
     );
 
     if (result != null) {
-      _selectedFile = result.files.single;
+      _selectedFiles
+        ..clear()
+        ..addAll(result.files);
       _message = null;
       notifyListeners();
     }
   }
 
-  void clearFile() {
-    _selectedFile = null;
+  void removeSelectedFile(int index) {
+    if (index >= 0 && index < _selectedFiles.length) {
+      _selectedFiles.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  void clearFiles() {
+    _selectedFiles.clear();
     notifyListeners();
   }
 
   Future<void> submitTask(int tareaId) async {
     _isUploading = true;
+    _uploadingFileName = null;
+    _uploadProgress = 0;
     _message = null;
     notifyListeners();
 
     try {
       final entregaId = await _service.createOrGetEntrega(tareaId);
 
-      if (_selectedFile != null) {
-        _isSuccess = await _service.uploadTaskFile(entregaId, _selectedFile!);
+      if (_selectedFiles.isNotEmpty) {
+        _uploadCancelToken = CancelToken();
+        _isSuccess = await _service.uploadTaskFiles(
+          entregaId,
+          _selectedFiles,
+          cancelToken: _uploadCancelToken,
+          onSendProgress: (index, sent, total) {
+            _uploadingFileName = _selectedFiles[index].name;
+            _uploadProgress = total == 0 ? 0 : ((sent / total) * 100).round();
+            notifyListeners();
+          },
+        );
       } else {
         _isSuccess = true;
       }
 
       _message = "¡Tarea entregada con éxito!";
-
+      _alreadySubmitted = true;
+      clearFiles();
       // Recargamos el estado desde el servidor para actualizar los archivos y la UI limpiamente
       await loadSubmissionStatus(tareaId);
+    } on DioError catch (e) {
+      if (CancelToken.isCancel(e)) {
+        _isSuccess = false;
+        _message = 'Subida cancelada por el usuario.';
+      } else {
+        _isSuccess = false;
+        _message = e.toString().replaceAll('Exception: ', '');
+      }
     } catch (e) {
       _isSuccess = false;
       _message = e.toString().replaceAll('Exception: ', '');
     } finally {
       _isUploading = false;
+      _uploadingFileName = null;
+      _uploadProgress = 0;
+      _uploadCancelToken = null;
       notifyListeners();
     }
+  }
+
+  /// Cancela la subida en curso si existe
+  Future<void> cancelUpload() async {
+    if (_uploadCancelToken != null && !_uploadCancelToken!.isCancelled) {
+      _uploadCancelToken?.cancel('Cancelled by user');
+    }
+
+    // Aseguramos limpiar el estado de la UI
+    _isUploading = false;
+    _uploadingFileName = null;
+    _uploadProgress = 0;
+    _message = 'Subida cancelada.';
+    _isSuccess = false;
+    notifyListeners();
   }
 
   /// ==========================================
@@ -116,7 +177,7 @@ class TaskDetailProvider extends ChangeNotifier {
       // 2. Si el backend responde bien, limpiamos el estado localmente
       _alreadySubmitted = false;
       _submissionData = null;
-      _selectedFile = null;
+      clearFiles();
       _studentScore = null; // NUEVO: Limpiamos la calificación por seguridad
       _teacherComment = null; // NUEVO: Limpiamos el comentario por seguridad
       _isSuccess = false;

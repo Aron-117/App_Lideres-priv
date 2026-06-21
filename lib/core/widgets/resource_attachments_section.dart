@@ -55,7 +55,6 @@ class _ResourceAttachmentsSectionState
                       fontSize: 18,
                     ),
                   ),
-                  // Botón de subir archivo (Solo Profesor)
                   if (widget.isTeacher)
                     TextButton.icon(
                       onPressed: provider.isUploading
@@ -82,13 +81,94 @@ class _ResourceAttachmentsSectionState
                 ],
               ),
               const SizedBox(height: 12),
-
+              // Transient cancel message (shows for 5s) but does not hide file list
+              if (provider.cancelMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceWhite,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.error.withOpacity(0.15),
+                      ),
+                    ),
+                    child: Text(
+                      provider.cancelMessage!,
+                      style: const TextStyle(color: AppColors.error),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               if (provider.isLoading && provider.files.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: CircularProgressIndicator(),
                   ),
+                )
+              else if (provider.isUploading)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.secondary.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            provider.uploadingFileName != null
+                                ? 'Subiendo ${provider.uploadingFileName} — ${provider.uploadProgress}%'
+                                : 'Subiendo archivo... ${provider.uploadProgress}%',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          LinearProgressIndicator(
+                            value: provider.uploadProgress / 100,
+                            backgroundColor: AppColors.backgroundLight,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: provider.canCancelUpload
+                                    ? () => provider.cancelUpload()
+                                    : null,
+                                child: const Text(
+                                  'Cancelar subida',
+                                  style: TextStyle(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 )
               else if (provider.error != null)
                 Text(
@@ -114,7 +194,6 @@ class _ResourceAttachmentsSectionState
                 )
               else
                 ...provider.files.map((file) {
-                  // Asegúrate de que las llaves correspondan a lo que devuelve tu backend
                   final fileId = file['id_archivo'];
                   final url = file['url'];
 

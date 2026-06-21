@@ -67,7 +67,6 @@ class PendientesScreen extends StatelessWidget {
                         .map(
                           (t) => TaskListTile(
                             title: t.titulo,
-                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
                                 id: t.idTarea,
@@ -105,7 +104,6 @@ class PendientesScreen extends StatelessWidget {
                         .map(
                           (t) => TaskListTile(
                             title: t.titulo,
-                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
                                 id: t.idTarea,
@@ -143,7 +141,6 @@ class PendientesScreen extends StatelessWidget {
                         .map(
                           (t) => TaskListTile(
                             title: t.titulo,
-                            description: t.descripcion,
                             onTap: () async {
                               final resource = Resource(
                                 id: t.idTarea,
