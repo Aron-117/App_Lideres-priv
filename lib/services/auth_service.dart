@@ -57,7 +57,24 @@ class AuthService {
 
   // 3. Cerrar sesión
   Future<void> logout() async {
-    await _storage.delete(key: 'jwt_token');
+    try {
+      final token = await getToken();
+      if (token != null) {
+        final url = Uri.parse('${ApiConstants.baseUrl}/auth/logout');
+        await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+      }
+    } catch (e) {
+      // Ignoramos errores de red al hacer logout para asegurar que
+      // la sesión local siempre se borre incluso sin internet.
+    } finally {
+      await _storage.delete(key: 'jwt_token');
+    }
   }
 
   // 4. Utilidad: Obtener el token guardado (lo usaremos para los cursos luego)
